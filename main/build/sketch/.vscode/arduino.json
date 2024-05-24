@@ -2,7 +2,8 @@
 {
     "sketch": "main.ino",
     "output": "build",
-    "board": "arduino:avr:uno",
+    "board": "esp32:esp32:esp32c3",
     "port": "COM6",
-    "programmer": "avrisp"
+    "programmer": "esptool",
+    "configuration": "JTAGAdapter=default,CDCOnBoot=default,PartitionScheme=default,CPUFreq=160,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,DebugLevel=none,EraseFlash=none"
 }

@@ -109,6 +109,8 @@ int32_t HX711::getData()
   {
     result |= 0xFF000000;
   }
+  // Serial.print(result);
+  Serial.print("_");
   return result;
 }
 
