@@ -43,7 +43,7 @@ float HX711::getWeight()
 /**
  * @brief     Get data from HX711 and set up PD_SCK = HIGH after
  */
-int32_t HX711::getData_H(byte Gain, uint16_t check_freq)
+int32_t HX711::getData_H(byte gain, uint16_t check_freq)
 {
   const byte response_time = 1;
   digitalWrite(PD_SCK, LOW);
@@ -67,7 +67,7 @@ int32_t HX711::getData_H(byte Gain, uint16_t check_freq)
   if (digitalRead(DOUT) == LOW)
     return 0x7FFFFFFF;
 
-  byte i = Gain - 25;
+  byte i = gain - 25;
   while (i > 0)
   {
     i--;
@@ -85,7 +85,7 @@ int32_t HX711::getData_H(byte Gain, uint16_t check_freq)
 /**
  * @brief     Get data from HX711 and set up PD_SCK = LOW after
  */
-int32_t HX711::getData_L(byte Gain, uint16_t check_freq)
+int32_t HX711::getData_L(byte gain, uint16_t check_freq)
 {
   const byte response_time = 1;
   unsigned long timer = millis();
@@ -112,7 +112,7 @@ int32_t HX711::getData_L(byte Gain, uint16_t check_freq)
   digitalWrite(PD_SCK, LOW);
   delayMicroseconds(response_time);
 
-  byte i = Gain - 25;
+  byte i = gain - 25;
   while (i > 0)
   {
     i--;
