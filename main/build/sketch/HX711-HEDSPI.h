@@ -31,7 +31,6 @@ public:
 private:
   uint8_t DOUT;
   uint8_t PD_SCK;
-  uint16_t MAX_LOAD = 1;
   uint8_t Gain = GAIN_128;
   int32_t Zero = 0;
   float Scale = 1;

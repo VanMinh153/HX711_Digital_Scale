@@ -44,8 +44,72 @@ int32_t HX711::setZero()
  *
  * @return      data from device data register
  */
+// int32_t HX711::getData()
+// {
+//   int32_t result = 0;
+//   // begin reading
+//   digitalWrite(PD_SCK, HIGH);
+//   delayMicroseconds(70);
+//   digitalWrite(PD_SCK, LOW);
+//   delayMicroseconds(100);
+
+//   // wait for DOUT pin to go LOW and signal data available
+//   unsigned long timer = millis();
+//   while (digitalRead(DOUT) == HIGH)
+//   {
+//     if (millis() - timer > 550)
+//       return 0;
+//   }
+
+//   // Set gain for next reading of data
+//   for (uint8_t i = 0; i < Gain; i++)
+//   {
+//     digitalWrite(PD_SCK, HIGH);
+//     delayMicroseconds(4);
+//     digitalWrite(PD_SCK, LOW);
+//     delayMicroseconds(4);
+//   }
+
+//   // Wait again for DOUT pin to signal available data
+//   timer = millis();
+//   while (digitalRead(DOUT) == HIGH)
+//   {
+//     if (millis() - timer > 550)
+//       return 0;
+//   }
+
+//   // read data
+//   for (uint8_t i = 0; i < 24; ++i)
+//   {
+//     digitalWrite(PD_SCK, HIGH);
+//     delayMicroseconds(4);
+
+//     result = ((result << 1) | digitalRead(DOUT));
+
+//     digitalWrite(PD_SCK, LOW);
+//     delayMicroseconds(4);
+//   }
+
+//   // One last pulse to set DOUT to high
+//   digitalWrite(PD_SCK, HIGH);
+//   delayMicroseconds(4);
+//   digitalWrite(PD_SCK, LOW);
+//   delayMicroseconds(4);
+
+//   // turn chip off
+//   digitalWrite(PD_SCK, HIGH);
+//   delayMicroseconds(70);
+
+//   if (bitRead(result, 23) == 1)
+//   {
+//     result |= 0xFF000000;
+//   }
+//   return result;
+// }
+
 int32_t HX711::getData()
 {
+  int32_t result = 0;
   // begin reading
   digitalWrite(PD_SCK, HIGH);
   delayMicroseconds(70);
@@ -57,31 +121,9 @@ int32_t HX711::getData()
   while (digitalRead(DOUT) == HIGH)
   {
     if (millis() - timer > 550)
-    {
       return 0;
-    }
   }
 
-  // Set gain for next reading of data
-  for (uint8_t i = 0; i < Gain; i++)
-  {
-    digitalWrite(PD_SCK, HIGH);
-    delayMicroseconds(4);
-    digitalWrite(PD_SCK, LOW);
-    delayMicroseconds(4);
-  }
-
-  // Wait again for DOUT pin to signal available data
-  timer = millis();
-  while (digitalRead(DOUT) == HIGH)
-  {
-    if (millis() - timer > 550)
-    {
-      return 0;
-    }
-  }
-
-  int32_t result = 0;
   // read data
   for (uint8_t i = 0; i < 24; ++i)
   {
@@ -90,6 +132,15 @@ int32_t HX711::getData()
 
     result = ((result << 1) | digitalRead(DOUT));
 
+    digitalWrite(PD_SCK, LOW);
+    delayMicroseconds(4);
+  }
+
+  // Set gain for next reading of data
+  for (uint8_t i = 0; i < Gain - 24; i++)
+  {
+    digitalWrite(PD_SCK, HIGH);
+    delayMicroseconds(4);
     digitalWrite(PD_SCK, LOW);
     delayMicroseconds(4);
   }
@@ -108,23 +159,11 @@ int32_t HX711::getData()
   {
     result |= 0xFF000000;
   }
-  // Serial.print(result);
-  Serial.print("_");
   return result;
 }
+
 
 float HX711::getWeight()
 {
   return (long)(getData() - Zero) / Scale;
 }
-
-// This function is for debugging purpose
-// int32_t HX711::getData() {
-//   int32_t data = 0;
-//   data = readDataNative();
-//   if (data != xxx) {
-//     Serial.print(data);
-//     Serial.print(" ");
-//   }
-//   return data;
-// }
