@@ -1,8 +1,6 @@
 /**
  * @brief       Library for HX711
- *
  * @author     Nguyen Van Minh - SOICT-HUST
- * @ref        HX711-SOLDERED - @soldered.com @Robert Peric
  */
 
 #include "HX711-HEDSPI.h"
@@ -24,9 +22,7 @@ void HX711::init()
 void HX711::setGain(uint8_t gain)
 {
   if (gain >= 25 && gain <= 27)
-  {
     Gain = gain;
-  }
 }
 
 void HX711::setScale(float scale) { Scale = scale; }
@@ -39,131 +35,95 @@ int32_t HX711::setZero()
   return Zero;
 }
 
-/**
- * @brief       readDataNative reads data from sensor using pins
- *
- * @return      data from device data register
- */
-// int32_t HX711::getData()
-// {
-//   int32_t result = 0;
-//   // begin reading
-//   digitalWrite(PD_SCK, HIGH);
-//   delayMicroseconds(70);
-//   digitalWrite(PD_SCK, LOW);
-//   delayMicroseconds(100);
-
-//   // wait for DOUT pin to go LOW and signal data available
-//   unsigned long timer = millis();
-//   while (digitalRead(DOUT) == HIGH)
-//   {
-//     if (millis() - timer > 550)
-//       return 0;
-//   }
-
-//   // Set gain for next reading of data
-//   for (uint8_t i = 0; i < Gain; i++)
-//   {
-//     digitalWrite(PD_SCK, HIGH);
-//     delayMicroseconds(4);
-//     digitalWrite(PD_SCK, LOW);
-//     delayMicroseconds(4);
-//   }
-
-//   // Wait again for DOUT pin to signal available data
-//   timer = millis();
-//   while (digitalRead(DOUT) == HIGH)
-//   {
-//     if (millis() - timer > 550)
-//       return 0;
-//   }
-
-//   // read data
-//   for (uint8_t i = 0; i < 24; ++i)
-//   {
-//     digitalWrite(PD_SCK, HIGH);
-//     delayMicroseconds(4);
-
-//     result = ((result << 1) | digitalRead(DOUT));
-
-//     digitalWrite(PD_SCK, LOW);
-//     delayMicroseconds(4);
-//   }
-
-//   // One last pulse to set DOUT to high
-//   digitalWrite(PD_SCK, HIGH);
-//   delayMicroseconds(4);
-//   digitalWrite(PD_SCK, LOW);
-//   delayMicroseconds(4);
-
-//   // turn chip off
-//   digitalWrite(PD_SCK, HIGH);
-//   delayMicroseconds(70);
-
-//   if (bitRead(result, 23) == 1)
-//   {
-//     result |= 0xFF000000;
-//   }
-//   return result;
-// }
-
-int32_t HX711::getData()
-{
-  int32_t result = 0;
-  // begin reading
-  digitalWrite(PD_SCK, HIGH);
-  delayMicroseconds(70);
-  digitalWrite(PD_SCK, LOW);
-  delayMicroseconds(100);
-
-  // wait for DOUT pin to go LOW and signal data available
-  unsigned long timer = millis();
-  while (digitalRead(DOUT) == HIGH)
-  {
-    if (millis() - timer > 550)
-      return 0;
-  }
-
-  // read data
-  for (uint8_t i = 0; i < 24; ++i)
-  {
-    digitalWrite(PD_SCK, HIGH);
-    delayMicroseconds(4);
-
-    result = ((result << 1) | digitalRead(DOUT));
-
-    digitalWrite(PD_SCK, LOW);
-    delayMicroseconds(4);
-  }
-
-  // Set gain for next reading of data
-  for (uint8_t i = 0; i < Gain - 24; i++)
-  {
-    digitalWrite(PD_SCK, HIGH);
-    delayMicroseconds(4);
-    digitalWrite(PD_SCK, LOW);
-    delayMicroseconds(4);
-  }
-
-  // One last pulse to set DOUT to high
-  digitalWrite(PD_SCK, HIGH);
-  delayMicroseconds(4);
-  digitalWrite(PD_SCK, LOW);
-  delayMicroseconds(4);
-
-  // turn chip off
-  digitalWrite(PD_SCK, HIGH);
-  delayMicroseconds(70);
-
-  if (bitRead(result, 23) == 1)
-  {
-    result |= 0xFF000000;
-  }
-  return result;
-}
-
-
 float HX711::getWeight()
 {
   return (long)(getData() - Zero) / Scale;
+}
+
+/**
+ * @brief     Get data from HX711 and set up PD_SCK = HIGH after
+ */
+int32_t HX711::getData_H(byte gain, uint16_t check_freq)
+{
+  const byte response_time = 1;
+  digitalWrite(PD_SCK, LOW);
+
+  unsigned long timer = millis();
+  while (digitalRead(DOUT) == HIGH && millis() - timer < 102)
+    delayMicroseconds(check_freq);
+
+  int32_t data = 0;
+  for (uint8_t i = 0; i < 24; i++)
+  {
+    digitalWrite(PD_SCK, HIGH);
+    delayMicroseconds(response_time);
+    data = ((data << 1) | digitalRead(DOUT));
+    digitalWrite(PD_SCK, LOW);
+    delayMicroseconds(response_time);
+  }
+
+  digitalWrite(PD_SCK, HIGH);
+  delayMicroseconds(response_time);
+  if (digitalRead(DOUT) == LOW)
+    return 0x7FFFFFFF;
+
+  byte i = gain - 25;
+  while (i > 0)
+  {
+    i--;
+    digitalWrite(PD_SCK, LOW);
+    delayMicroseconds(response_time);
+    digitalWrite(PD_SCK, HIGH);
+    delayMicroseconds(response_time);
+  }
+
+  if (bitRead(data, 23) == 1)
+    data |= 0xFF000000;
+
+  return data;
+}
+/**
+ * @brief     Get data from HX711 and set up PD_SCK = LOW after
+ */
+int32_t HX711::getData_L(byte gain, uint16_t check_freq)
+{
+  const byte response_time = 1;
+  unsigned long timer = millis();
+  while (digitalRead(DOUT) == HIGH && millis() - timer < 102)
+    delayMicroseconds(check_freq);
+
+  int32_t data = 0;
+  for (uint8_t i = 0; i < 24; i++)
+  {
+    digitalWrite(PD_SCK, HIGH);
+    delayMicroseconds(response_time);
+    data = ((data << 1) | digitalRead(DOUT));
+    digitalWrite(PD_SCK, LOW);
+    delayMicroseconds(response_time);
+  }
+
+  digitalWrite(PD_SCK, HIGH);
+  delayMicroseconds(response_time);
+  if (digitalRead(DOUT) == LOW)
+  {
+    digitalWrite(PD_SCK, LOW);
+    return 0x7FFFFFFF;
+  }
+  digitalWrite(PD_SCK, LOW);
+  delayMicroseconds(response_time);
+
+  byte i = gain - 25;
+  while (i > 0)
+  {
+    i--;
+    digitalWrite(PD_SCK, HIGH);
+    delayMicroseconds(response_time);
+    digitalWrite(PD_SCK, LOW);
+    delayMicroseconds(response_time);
+  }
+
+  if (bitRead(data, 23) == 1)
+    data |= 0xFF000000;
+
+  return data;
 }

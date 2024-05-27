@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #line 1 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 #include "HX711-HEDSPI.h"
-#include <HX711_ADC.h>
 #include <LiquidCrystal_I2C.h>
 
 #define DOUT 6
@@ -20,10 +19,10 @@
 #define ABSOLUTE_ERROR 0.1f
 #define AUTO_SLEEP_TIME 3000
 #define RECORD_TIME 600
-#define FLICKER_DELAY 200
-#define SLEEP_DELAY 3000
+#define FLICKER_DELAY 350
+#define SLEEP_DELAY 2000
 #define SHOW_RECORD_TIME 2500
-#define SHOW_ISR_MIN_TIME 1000
+#define SHOW_ISR_MIN_TIME 300
 #define SHOW_ISR_TIME 2000
 #define DEBOUNCE_TIME 200
 #define RECORD_NUM 3
@@ -32,20 +31,15 @@
 #define KG_TO_LB 2.204623f
 #define MAIN_TITLE "Digital Scale"
 
+
 HX711 sensor(DOUT, PD_SCK, GAIN_128, SCALE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
+byte Gain = GAIN_128;
 float Scale = SCALE;
 int32_t Zero = 0;
 byte Mode = KG_MODE;
 uint16_t Absolute_error = (uint16_t)(Scale * ABSOLUTE_ERROR);
-int32_t _d = 0;
-float _w = 0;
-float prev_w = 0;
-unsigned long timer = millis();
-float record_w[RECORD_NUM];
-byte q = 0;
-byte k = 0;
 uint32_t sensor_error = 0;
 volatile byte tare = 0;
 volatile byte mode = 0;
@@ -53,15 +47,18 @@ volatile byte up = 0;
 volatile byte down = 0;
 volatile byte record = 0;
 volatile byte interrupt = 0;
+volatile long prev_press = millis();
 byte prev_interrupt = 0;
-unsigned long prev_record = millis();
-unsigned long prev_tare = millis();
-unsigned long prev_mode = millis();
-unsigned long prev_up = millis();
-unsigned long prev_down = millis();
+int32_t _d = 0;
+float prev_d = 0;
+float _w = 0;
+unsigned long timer = millis();
+float record_w[RECORD_NUM];
+byte q = 0;
+byte k = 0;
 byte _sleep = 0;
-byte detect = 0;
-byte _interrupt = 0;
+byte _detect = 0;
+byte _isr = 0;
 
 //----------------------------------------------------------------------------------------------------------------------
 void IRAM_ATTR recordISR();
@@ -71,33 +68,33 @@ void IRAM_ATTR upISR();
 void IRAM_ATTR downISR();
 void lcd_(float _w);
 void sort_(int32_t arr[], byte n, int32_t avg);
-int32_t getData_(byte K = 10, uint32_t *error = &sensor_error);
-int32_t getData(uint16_t delay_time = 0);
+int32_t getData_Avg(byte K = 10, uint32_t *error = &sensor_error);
+int32_t getData_(uint16_t delay_time = 0);
 float getWeight();
 float toWeight(int32_t data);
 byte sleep_(byte sensitivity = 2);
-byte sleep2_();
 byte delay_W(uint16_t timeout, uint16_t time2listen = 50, uint16_t error = Absolute_error);
 byte delay_I(uint32_t timeout, volatile byte *isrCtl = NULL);
+void setGain(byte gain);
 
 //----------------------------------------------------------------------------------------------------------------------
-#line 82 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+#line 79 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 void setup();
-#line 111 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+#line 108 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 void loop();
-#line 295 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+#line 291 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 void lcd_(float w);
-#line 320 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+#line 316 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error);
-#line 386 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+#line 382 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 byte sleep_(byte sensitivity);
-#line 397 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+#line 396 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 byte delay_I(uint32_t timeout, volatile byte *isrCtl);
-#line 429 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
-int32_t getData_(byte K, uint32_t *error);
+#line 428 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+int32_t getData_Avg(byte K, uint32_t *error);
 #line 471 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
-int32_t getData(uint16_t delay_time);
-#line 82 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+int32_t getData_(uint16_t delay_time);
+#line 79 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 void setup()
 {
   Serial.begin(57600);
@@ -129,26 +126,26 @@ void setup()
 //----------------------------------------------------------------------------------------------------------------------
 void loop()
 {
-  if (_sleep = true || _interrupt == 1)
+  if (_sleep = true || _isr == 1)
   {
     _sleep = false;
-    _interrupt = 0;
+    _isr = 0;
     lcd.setCursor(1, 0);
     lcd.print(MAIN_TITLE);
   }
-  _d = getData(500);
+  _d = getData_(500);
   _w = toWeight(_d);
   lcd_(_w);
 
   // feature: Auto turn off the screen backlight
   // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
-  if (detect == true)
-    detect = false;
-  if (abs(_w - prev_w) < 2 * ABSOLUTE_ERROR)
+  if (_detect == true)
+    _detect = false;
+  if (abs(_d - prev_d) < 2 * Absolute_error)
   {
     while (millis() - timer > AUTO_SLEEP_TIME)
     {
-      if (_w == 0)
+      if (_d == 0)
       {
         _sleep = true;
         sleep_();
@@ -184,9 +181,9 @@ void loop()
     if (q == RECORD_NUM)
       q = 0;
     record_w[q] = _w;
-    Serial.println(String("\r\nRecord: " + String(_w)));
+    Serial.println("\r\nRecord: " + String(_w));
   }
-  prev_w = _w;
+  prev_d = _d;
 
   //----------------------------------------------------------------------------------------------------------------------
   // Interrupt handling
@@ -194,7 +191,7 @@ void loop()
   {
     Serial.print('*');
     prev_interrupt = interrupt;
-    _interrupt = 1;
+    _isr = 1;
     byte _tare = tare;
     byte _mode = mode;
     byte _up = up;
@@ -215,7 +212,7 @@ void loop()
       lcd.print("Taring...       ");
       for (byte i = 0; i < 5; i++)
       {
-        Zero = getData_();
+        Zero = getData_Avg();
         if (sensor_error < (int)(Scale * (ABSOLUTE_ERROR / 5)))
           break;
       }
@@ -296,7 +293,6 @@ void loop()
       NULL;
     else
     {
-      delay(SHOW_ISR_MIN_TIME);
       if (delay_I(SHOW_ISR_TIME - SHOW_ISR_MIN_TIME) == 1)
         continue;
     }
@@ -329,7 +325,7 @@ void lcd_(float w)
 }
 
 /**
- * @brief Delay function with the ability to detect the interruption signal and weight changes
+ * @brief Delay function with the ability to _detect the interruption signal and weight changes
  *
  * @param timeout     The maximum time to wait. if timeout = 0xffff, the function will wait indefinitely
  * @param time2listen The time to listen weight changes
@@ -338,7 +334,7 @@ void lcd_(float w)
  */
 byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
 {
-  if (detect == 1)
+  if (_detect == 1)
     return 1;
 
   unsigned long t = millis();
@@ -351,12 +347,12 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
     if (timeout == 0xffff)
     {
       delay(time2listen);
-      d = getData(1000);
+      d = getData_(1000);
     }
     else if (TIME_END > t + time2listen)
     {
       delay(time2listen);
-      d = getData();
+      d = getData_();
       t = millis();
     }
     else
@@ -369,7 +365,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
     if (flag == 1)
       if (abs(d) > error)
       {
-        detect = 1;
+        _detect = 1;
         break;
       }
       else
@@ -383,15 +379,15 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
 
     if (abs(_d - d) > error)
     {
-      if (abs(d - getData()) < 2 * error)
+      if (abs(d - getData_()) < 2 * error)
       {
-        detect = 1;
+        _detect = 1;
         break;
       }
     }
   }
 
-  if (detect == 1)
+  if (_detect == 1)
   {
     timer = millis();
     return 1;
@@ -407,8 +403,11 @@ byte sleep_(byte sensitivity)
   lcd.clear();
   lcd.noBacklight();
   byte retval = 0;
+  setGain(GAIN_64);
 
   retval = delay_W(0xffff, 300, sensitivity * Absolute_error);
+  // Serial.println("\r\nAwake: " + String(retval));
+  setGain(GAIN_128);
   lcd.backlight();
   return retval;
 }
@@ -445,7 +444,7 @@ void sort_(int32_t arr[], byte n, int32_t avg)
   }
 }
 
-int32_t getData_(byte K, uint32_t *error)
+int32_t getData_Avg(byte K, uint32_t *error)
 {
   const byte N = 5;
   int32_t d[N];
@@ -487,26 +486,27 @@ int32_t getData_(byte K, uint32_t *error)
   *error = d_worst;
   return d_avg;
 }
-int32_t getData(uint16_t delay_time)
+//
+int32_t getData_(uint16_t delay_time)
 {
   byte i = 0;
-  int32_t d = getData_();
+  int32_t d = getData_Avg();
   if (sensor_error > Absolute_error)
-    d = getData_();
+    d = getData_Avg();
 
   if (delay_time > 0 && sensor_error > Absolute_error)
   {
     for (i = 1; i < 3; i++)
     {
       delay(delay_time / 2);
-      d = getData_();
+      d = getData_Avg();
       if (sensor_error < Absolute_error)
         break;
     }
   }
 
   if (sensor_error > Absolute_error)
-    Serial.println(String("\r\nE-" + String(i) + '-' + String(toWeight(d)) + '-' + String(sensor_error)));
+    Serial.println("\r\nE-" + String(i) + '-' + String(toWeight(d)) + '-' + String(sensor_error));
   else
     Serial.print('_');
   return d;
@@ -519,50 +519,68 @@ float toWeight(int32_t data)
 
 float getWeight()
 {
-  return (long)(getData() - Zero) / Scale;
+  return (long)(getData_() - Zero) / Scale;
 }
+
+void setGain(byte gain)
+{
+  float k;
+  if (Gain == GAIN_64 && gain == GAIN_128)
+    k = 2;
+  else if (Gain == GAIN_128 && gain == GAIN_64)
+    k = 0.5;
+  else
+    return;
+  
+  Gain = gain;
+  _d *= k;
+  Scale *= k;
+  Absolute_error *= k;
+  sensor.setGain(gain);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 void IRAM_ATTR recordISR()
 {
-  if (millis() - prev_record < DEBOUNCE_TIME)
+  if (millis() - prev_press < DEBOUNCE_TIME)
     return;
-  prev_record = millis();
+  prev_press = millis();
   record = 1;
   interrupt++;
 }
 
 void IRAM_ATTR tareISR()
 {
-  if (millis() - prev_tare < DEBOUNCE_TIME)
+  if (millis() - prev_press < DEBOUNCE_TIME)
     return;
-  prev_tare = millis();
+  prev_press = millis();
   tare = 1;
   interrupt++;
 }
 
 void IRAM_ATTR modeISR()
 {
-  if (millis() - prev_mode < DEBOUNCE_TIME)
+  if (millis() - prev_press < DEBOUNCE_TIME)
     return;
-  prev_mode = millis();
+  prev_press = millis();
   mode = 1;
   interrupt++;
 }
 
 void IRAM_ATTR upISR()
 {
-  if (millis() - prev_up < DEBOUNCE_TIME)
+  if (millis() - prev_press < DEBOUNCE_TIME)
     return;
-  prev_up = millis();
+  prev_press = millis();
   up = 1;
   interrupt++;
 }
 
 void IRAM_ATTR downISR()
 {
-  if (millis() - prev_down < DEBOUNCE_TIME)
+  if (millis() - prev_press < DEBOUNCE_TIME)
     return;
-  prev_down = millis();
+  prev_press = millis();
   down = 1;
   interrupt++;
 }

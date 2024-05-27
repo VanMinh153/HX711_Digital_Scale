@@ -11,11 +11,6 @@
   },
   {
     "Sourcefile": "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\build\\sketch\\main.ino.cpp",
-    "Include": "HX711_ADC.h",
-    "Includepath": "C:\\Users\\Admin\\Documents\\Arduino\\libraries\\HX711_ADC\\src"
-  },
-  {
-    "Sourcefile": "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\build\\sketch\\main.ino.cpp",
     "Include": "LiquidCrystal_I2C.h",
     "Includepath": "C:\\Users\\Admin\\Documents\\Arduino\\libraries\\LiquidCrystal_I2C"
   },
@@ -31,11 +26,6 @@
   },
   {
     "Sourcefile": "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\build\\sketch\\HX711-HEDSPI.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "C:\\Users\\Admin\\Documents\\Arduino\\libraries\\HX711_ADC\\src\\HX711_ADC.cpp",
     "Include": "",
     "Includepath": null
   },

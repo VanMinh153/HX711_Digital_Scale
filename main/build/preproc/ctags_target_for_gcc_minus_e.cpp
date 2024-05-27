@@ -1,24 +1,17 @@
 # 1 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 # 2 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 2
 # 3 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 2
-# 4 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 2
-# 16 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+# 15 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 // #define SCALE 1030
 # 33 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 HX711 sensor(6, 7, 25, 420);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
+byte Gain = 25;
 float Scale = 420;
 int32_t Zero = 0;
 byte Mode = 0;
 uint16_t Absolute_error = (uint16_t)(Scale * 0.1f);
-int32_t _d = 0;
-float _w = 0;
-float prev_w = 0;
-unsigned long timer = millis();
-float record_w[3];
-byte q = 0;
-byte k = 0;
 uint32_t sensor_error = 0;
 volatile byte tare = 0;
 volatile byte mode = 0;
@@ -26,15 +19,18 @@ volatile byte up = 0;
 volatile byte down = 0;
 volatile byte record = 0;
 volatile byte interrupt = 0;
+volatile long prev_press = millis();
 byte prev_interrupt = 0;
-unsigned long prev_record = millis();
-unsigned long prev_tare = millis();
-unsigned long prev_mode = millis();
-unsigned long prev_up = millis();
-unsigned long prev_down = millis();
+int32_t _d = 0;
+float prev_d = 0;
+float _w = 0;
+unsigned long timer = millis();
+float record_w[3];
+byte q = 0;
+byte k = 0;
 byte _sleep = 0;
-byte detect = 0;
-byte _interrupt = 0;
+byte _detect = 0;
+byte _isr = 0;
 
 //----------------------------------------------------------------------------------------------------------------------
 void __attribute__((section(".iram1" "." "27"))) recordISR();
@@ -44,18 +40,18 @@ void __attribute__((section(".iram1" "." "30"))) upISR();
 void __attribute__((section(".iram1" "." "31"))) downISR();
 void lcd_(float _w);
 void sort_(int32_t arr[], byte n, int32_t avg);
-int32_t getData_(byte K = 10, uint32_t *error = &sensor_error);
-int32_t getData(uint16_t delay_time = 0);
+int32_t getData_Avg(byte K = 10, uint32_t *error = &sensor_error);
+int32_t getData_(uint16_t delay_time = 0);
 float getWeight();
 float toWeight(int32_t data);
 byte sleep_(byte sensitivity = 2);
-byte sleep2_();
 byte delay_W(uint16_t timeout, uint16_t time2listen = 50, uint16_t error = Absolute_error);
 byte delay_I(uint32_t timeout, volatile byte *isrCtl = 
-# 79 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 3 4
+# 75 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 3 4
                                                       __null
-# 79 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+# 75 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
                                                           );
+void setGain(byte gain);
 
 //----------------------------------------------------------------------------------------------------------------------
 void setup()
@@ -89,26 +85,26 @@ void setup()
 //----------------------------------------------------------------------------------------------------------------------
 void loop()
 {
-  if (_sleep = true || _interrupt == 1)
+  if (_sleep = true || _isr == 1)
   {
     _sleep = false;
-    _interrupt = 0;
+    _isr = 0;
     lcd.setCursor(1, 0);
     lcd.print("Digital Scale");
   }
-  _d = getData(500);
+  _d = getData_(500);
   _w = toWeight(_d);
   lcd_(_w);
 
   // feature: Auto turn off the screen backlight
   // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
-  if (detect == true)
-    detect = false;
-  if (abs(_w - prev_w) < 2 * 0.1f)
+  if (_detect == true)
+    _detect = false;
+  if (abs(_d - prev_d) < 2 * Absolute_error)
   {
     while (millis() - timer > 3000)
     {
-      if (_w == 0)
+      if (_d == 0)
       {
         _sleep = true;
         sleep_();
@@ -117,17 +113,17 @@ void loop()
       for (byte i = 0; i < 2; i++)
       {
         lcd.noBacklight();
-        if (delay_W(200) != 0)
+        if (delay_W(350) != 0)
         {
           lcd.backlight();
           break;
         }
 
         lcd.backlight();
-        if (delay_W(200) != 0)
+        if (delay_W(350) != 0)
           break;
       }
-      if (delay_W(200) != 0)
+      if (delay_W(350) != 0)
         break;
       _sleep = true;
       sleep_();
@@ -144,9 +140,9 @@ void loop()
     if (q == 3)
       q = 0;
     record_w[q] = _w;
-    Serial.println(String("\r\nRecord: " + String(_w)));
+    Serial.println("\r\nRecord: " + String(_w));
   }
-  prev_w = _w;
+  prev_d = _d;
 
   //----------------------------------------------------------------------------------------------------------------------
   // Interrupt handling
@@ -154,7 +150,7 @@ void loop()
   {
     Serial.print('*');
     prev_interrupt = interrupt;
-    _interrupt = 1;
+    _isr = 1;
     byte _tare = tare;
     byte _mode = mode;
     byte _up = up;
@@ -175,7 +171,7 @@ void loop()
       lcd.print("Taring...       ");
       for (byte i = 0; i < 5; i++)
       {
-        Zero = getData_();
+        Zero = getData_Avg();
         if (sensor_error < (int)(Scale * (0.1f / 5)))
           break;
       }
@@ -254,14 +250,13 @@ void loop()
 
     if (_record == 1)
       
-# 277 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 3 4
+# 274 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 3 4
      __null
-# 277 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+# 274 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
          ;
     else
     {
-      delay(1000);
-      if (delay_I(2000 - 1000) == 1)
+      if (delay_I(2000 - 300) == 1)
         continue;
     }
 
@@ -294,7 +289,7 @@ void lcd_(float w)
 
 /**
 
- * @brief Delay function with the ability to detect the interruption signal and weight changes
+ * @brief Delay function with the ability to _detect the interruption signal and weight changes
 
  *
 
@@ -307,10 +302,10 @@ void lcd_(float w)
  * @return byte       0: timeout, 1: weight changes, 2: interrupt signal
 
  */
-# 320 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+# 316 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
 {
-  if (detect == 1)
+  if (_detect == 1)
     return 1;
 
   unsigned long t = millis();
@@ -323,12 +318,12 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
     if (timeout == 0xffff)
     {
       delay(time2listen);
-      d = getData(1000);
+      d = getData_(1000);
     }
     else if (TIME_END > t + time2listen)
     {
       delay(time2listen);
-      d = getData();
+      d = getData_();
       t = millis();
     }
     else
@@ -341,7 +336,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
     if (flag == 1)
       if (abs(d) > error)
       {
-        detect = 1;
+        _detect = 1;
         break;
       }
       else
@@ -355,15 +350,15 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
 
     if (abs(_d - d) > error)
     {
-      if (abs(d - getData()) < 2 * error)
+      if (abs(d - getData_()) < 2 * error)
       {
-        detect = 1;
+        _detect = 1;
         break;
       }
     }
   }
 
-  if (detect == 1)
+  if (_detect == 1)
   {
     timer = millis();
     return 1;
@@ -376,14 +371,17 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
  * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
 
  */
-# 386 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+# 382 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
 byte sleep_(byte sensitivity)
 {
   lcd.clear();
   lcd.noBacklight();
   byte retval = 0;
+  setGain(27);
 
   retval = delay_W(0xffff, 300, sensitivity * Absolute_error);
+  // Serial.println("\r\nAwake: " + String(retval));
+  setGain(25);
   lcd.backlight();
   return retval;
 }
@@ -392,9 +390,9 @@ byte delay_I(uint32_t timeout, volatile byte *isrCtl)
 {
   unsigned long t = millis() + timeout;
   if (isrCtl != 
-# 400 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 3 4
+# 399 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino" 3 4
                __null
-# 400 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
+# 399 "C:\\Users\\Admin\\Desktop\\Documents\\GR1 Scale\\main\\main.ino"
                    )
   {
     while (*isrCtl == 0 && millis() < t)
@@ -424,7 +422,7 @@ void sort_(int32_t arr[], byte n, int32_t avg)
   }
 }
 
-int32_t getData_(byte K, uint32_t *error)
+int32_t getData_Avg(byte K, uint32_t *error)
 {
   const byte N = 5;
   int32_t d[N];
@@ -435,7 +433,7 @@ int32_t getData_(byte K, uint32_t *error)
 
   for (byte i = 0; i < N; i++)
   {
-    d_temp = sensor.getData();
+    d_temp = sensor.getData_H(Gain);
     if (abs(d_temp) < Scale * 200)
     {
       d[i] = d_temp;
@@ -452,7 +450,7 @@ int32_t getData_(byte K, uint32_t *error)
   d_worst = abs(d[N - 1] - d_avg);
   while (k < K && d_worst > Absolute_error)
   {
-    d_temp = sensor.getData();
+    d_temp = sensor.getData_H(Gain);
     if (abs(d_temp - d_avg) < d_worst)
     {
       d_avg += (d_temp - d[N - 1]) / N;
@@ -466,26 +464,27 @@ int32_t getData_(byte K, uint32_t *error)
   *error = d_worst;
   return d_avg;
 }
-int32_t getData(uint16_t delay_time)
+//
+int32_t getData_(uint16_t delay_time)
 {
   byte i = 0;
-  int32_t d = getData_();
+  int32_t d = getData_Avg();
   if (sensor_error > Absolute_error)
-    d = getData_();
+    d = getData_Avg();
 
   if (delay_time > 0 && sensor_error > Absolute_error)
   {
     for (i = 1; i < 3; i++)
     {
       delay(delay_time / 2);
-      d = getData_();
+      d = getData_Avg();
       if (sensor_error < Absolute_error)
         break;
     }
   }
 
   if (sensor_error > Absolute_error)
-    Serial.println(String("\r\nE-" + String(i) + '-' + String(toWeight(d)) + '-' + String(sensor_error)));
+    Serial.println("\r\nE-" + String(i) + '-' + String(toWeight(d)) + '-' + String(sensor_error));
   else
     Serial.print('_');
   return d;
@@ -498,50 +497,68 @@ float toWeight(int32_t data)
 
 float getWeight()
 {
-  return (long)(getData() - Zero) / Scale;
+  return (long)(getData_() - Zero) / Scale;
 }
+
+void setGain(byte gain)
+{
+  float k;
+  if (Gain == 27 && gain == 25)
+    k = 2;
+  else if (Gain == 25 && gain == 27)
+    k = 0.5;
+  else
+    return;
+
+  Gain = gain;
+  _d *= k;
+  Scale *= k;
+  Absolute_error *= k;
+  sensor.setGain(gain);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 void __attribute__((section(".iram1" "." "32"))) recordISR()
 {
-  if (millis() - prev_record < 200)
+  if (millis() - prev_press < 200)
     return;
-  prev_record = millis();
+  prev_press = millis();
   record = 1;
   interrupt++;
 }
 
 void __attribute__((section(".iram1" "." "33"))) tareISR()
 {
-  if (millis() - prev_tare < 200)
+  if (millis() - prev_press < 200)
     return;
-  prev_tare = millis();
+  prev_press = millis();
   tare = 1;
   interrupt++;
 }
 
 void __attribute__((section(".iram1" "." "34"))) modeISR()
 {
-  if (millis() - prev_mode < 200)
+  if (millis() - prev_press < 200)
     return;
-  prev_mode = millis();
+  prev_press = millis();
   mode = 1;
   interrupt++;
 }
 
 void __attribute__((section(".iram1" "." "35"))) upISR()
 {
-  if (millis() - prev_up < 200)
+  if (millis() - prev_press < 200)
     return;
-  prev_up = millis();
+  prev_press = millis();
   up = 1;
   interrupt++;
 }
 
 void __attribute__((section(".iram1" "." "36"))) downISR()
 {
-  if (millis() - prev_down < 200)
+  if (millis() - prev_press < 200)
     return;
-  prev_down = millis();
+  prev_press = millis();
   down = 1;
   interrupt++;
 }
