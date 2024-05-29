@@ -28,6 +28,7 @@
 #define SCALE 420
 // #define SCALE 1030
 #define MAX_LOAD 200
+// #define AVG_TIME2READ_G128 105 // 105ms
 #define ABSOLUTE_ERROR 0.1f
 #define AUTO_SLEEP_TIME 3000
 #define RECORD_TIME 600
@@ -66,6 +67,7 @@ unsigned long timer = millis();
 float record_w[RECORD_NUM];
 byte q = 0;
 byte k = 0;
+int32_t prev_getData = 0;
 byte _sleep = 0;
 byte _detect = 0;
 byte _isr = 0;
@@ -187,14 +189,13 @@ void loop()
   while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1)
   {
     // Serial.print('*');
-    prev_interrupt = interrupt;
-    _isr = 1;
     byte _tare = tare;
     byte _mode = mode;
     byte _up = up;
     byte _down = down;
     byte _record = record;
-
+    prev_interrupt = interrupt;
+    _isr = 1;
     //
     if (_tare == 1 || _mode == 1)
     {
@@ -207,12 +208,7 @@ void loop()
       tare = 0;
       lcd.setCursor(1, 1);
       lcd.print("Taring...       ");
-      for (byte i = 0; i < 5; i++)
-      {
-        Zero = getData_Avg();
-        if (sensor_error < (int)(Scale * (ABSOLUTE_ERROR / 5)))
-          break;
-      }
+      Zero = getData_();
       sensor.setZero(Zero);
       lcd_(getWeight());
     }
@@ -227,7 +223,7 @@ void loop()
     //
     if (_up == 1 || _down == 1)
     {
-      delay(100);
+      delay(DEBOUNCE_TIME);
       lcd.setCursor(1, 0);
       lcd.print("Adjust Scale    ");
     }
@@ -365,7 +361,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
       delay(time2listen);
       d = getData_(true);
     }
-    else if (TIME_END > t + time2listen)
+    else if (TIME_END > t + time2listen + 105)
     {
       delay(time2listen);
       d = getData_();
@@ -457,11 +453,15 @@ int32_t getData_Avg()
   for (byte i = 0; i < 2 * N; i++)
   {
     d_temp = sensor.getData();
-    // if (d_temp != 16380 && d_temp != 8190)
-    //   Serial.print("`" + String(d_temp));
-
     if (d_temp == -1)
       continue;
+    if (d_temp == prev_getData)
+    {
+      countZ++;
+      if (countZ == 2 && count == 0)
+        return d_temp;
+      continue;
+    }
     if (abs(d_temp) < Scale * MAX_LOAD)
     {
       d[count] = d_temp;
@@ -482,9 +482,6 @@ int32_t getData_Avg()
   while (count < K && d_worst > Absolute_error)
   {
     d_temp = sensor.getData();
-    // if (d_temp != 16380 && d_temp != 8190)
-    //   Serial.print("`" + String(d_temp));
-
     if (d_temp == -1)
       continue;
     if (abs(d_temp - d_avg) < d_worst)
@@ -498,6 +495,7 @@ int32_t getData_Avg()
   }
 
   sensor_error = d_worst;
+  prev_getData = d_avg;
   // Serial.print('_');
   return d_avg;
 }
@@ -525,7 +523,7 @@ int32_t getData_(byte allow_delay)
   if (d == 0x7fffff)
   {
     Serial.println("Error: Failed to get data from HX711");
-    return _d; 
+    return _d;
   }
   if (sensor_error > Absolute_error)
     Serial.println("Error Weight: " + String(toWeight(d)) + " +-" + String(sensor_error / Scale));
@@ -558,6 +556,7 @@ void setGain(byte gain)
   Absolute_error *= k;
   Zero *= k;
   sensor.setGain(gain);
+  sensor.getData();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
