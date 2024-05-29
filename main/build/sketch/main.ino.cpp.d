@@ -163,7 +163,13 @@ C:\Users\Admin\Desktop\Documents\GR1\ Scale\main\build\sketch\main.ino.cpp.o: \
  C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/io_pin_remap.h \
  C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/Arduino.h \
  C:\Users\Admin\Desktop\Documents\GR1\ Scale\main\build\sketch\HX711-HEDSPI.h \
- C:\Users\Admin\Documents\Arduino\libraries\LiquidCrystal_I2C/LiquidCrystal_I2C.h \
- C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/Print.h \
+ C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\libraries\SPI\src/SPI.h \
+ C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/esp32-hal-spi.h \
  C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\libraries\Wire\src/Wire.h \
- C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/esp32-hal.h
+ C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/esp32-hal.h \
+ C:\Users\Admin\Documents\Arduino\libraries\Adafruit_GFX_Library/Adafruit_GFX.h \
+ C:\Users\Admin\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.16\cores\esp32/Print.h \
+ C:\Users\Admin\Documents\Arduino\libraries\Adafruit_GFX_Library/gfxfont.h \
+ C:\Users\Admin\Documents\Arduino\libraries\Adafruit_BusIO/Adafruit_I2CDevice.h \
+ C:\Users\Admin\Documents\Arduino\libraries\Adafruit_BusIO/Adafruit_SPIDevice.h \
+ C:\Users\Admin\Documents\Arduino\libraries\Adafruit_SSD1306/Adafruit_SSD1306.h

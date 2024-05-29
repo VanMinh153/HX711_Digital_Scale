@@ -66,7 +66,7 @@ int32_t HX711::getData_H(byte gain, uint16_t check_freq)
   digitalWrite(PD_SCK, HIGH);
   delayMicroseconds(response_time);
   if (digitalRead(DOUT) == LOW)
-    return 0x7FFFFFFF;
+    return 0x7fffff;
 
   byte i = gain - 25;
   while (i > 0)
@@ -77,6 +77,7 @@ int32_t HX711::getData_H(byte gain, uint16_t check_freq)
     digitalWrite(PD_SCK, HIGH);
     delayMicroseconds(response_time);
   }
+  delayMicroseconds(65);
 
   if (bitRead(data, 23) == 1)
     data |= 0xFF000000;

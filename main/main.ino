@@ -1,10 +1,14 @@
 #include "HX711-HEDSPI.h"
-#include <LiquidCrystal_I2C.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #define DOUT 6
 #define PD_SCK 7
 #define SDA 2
 #define SCL 3
+#define I2C_ADDRESS 0x3C
 #define TARE 4
 #define MODE 5
 #define DOWN 8
@@ -28,9 +32,8 @@
 #define KG_TO_LB 2.204623f
 #define MAIN_TITLE "Digital Scale"
 
-
 HX711 sensor(DOUT, PD_SCK, GAIN_128, SCALE);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+Adafruit_SSD1306 oled(128, 64, &Wire, -1);
 
 byte Gain = GAIN_128;
 float Scale = SCALE;
@@ -63,10 +66,12 @@ void IRAM_ATTR tareISR();
 void IRAM_ATTR modeISR();
 void IRAM_ATTR upISR();
 void IRAM_ATTR downISR();
-void lcd_(float _w);
+void oled_(float _w);
+void oled_M(float _w);
 void sort_(int32_t arr[], byte n, int32_t avg);
-int32_t getData_Avg(byte K = 10, uint32_t *error = &sensor_error);
-int32_t getData_(uint16_t delay_time = 0);
+// int32_t getData_Avg(byte K = 5, uint32_t *error = &sensor_error);
+int32_t getData_Avg();
+int32_t getData_(byte allow_delay = 0);
 float getWeight();
 float toWeight(int32_t data);
 byte sleep_(byte sensitivity = 2);
@@ -83,25 +88,32 @@ void setup()
   pinMode(UP, INPUT_PULLUP);
   pinMode(DOWN, INPUT_PULLUP);
   pinMode(RECORD, INPUT_PULLUP);
-  attachInterrupt(TARE, tareISR, FALLING);
-  attachInterrupt(MODE, modeISR, FALLING);
-  attachInterrupt(UP, upISR, FALLING);
-  attachInterrupt(DOWN, downISR, FALLING);
-  attachInterrupt(RECORD, recordISR, FALLING);
+  attachInterrupt(TARE, tareISR, RISING);
+  attachInterrupt(MODE, modeISR, RISING);
+  attachInterrupt(UP, upISR, RISING);
+  attachInterrupt(DOWN, downISR, RISING);
+  attachInterrupt(RECORD, recordISR, RISING);
+  
   Wire.begin(SDA, SCL);
-
   sensor.init();
-
-  lcd.init();
-  lcd.backlight();
-  lcd.noCursor();
-  lcd.setCursor(1, 0);
-  lcd.print(MAIN_TITLE);
-  lcd.setCursor(1, 1);
-  lcd.print("SOICT - HUST");
+  oled.begin(SSD1306_SWITCHCAPVCC, I2C_ADDRESS);
   delay(1000);
-  lcd.setCursor(1, 1);
-  lcd.print("            ");
+  getData_(true);
+  getData_(true);
+  getData_(true);
+
+  oled.clearDisplay();
+  oled.setTextSize(1);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(24, 0);
+  oled.println(MAIN_TITLE);
+  oled.setCursor(28, 20);
+  oled.println("SOICT - HUST");
+  oled.display();
+  delay(1000);
+  oled.clearDisplay();
+  oled.display();
+
 }
 //----------------------------------------------------------------------------------------------------------------------
 void loop()
@@ -110,12 +122,11 @@ void loop()
   {
     _sleep = false;
     _isr = 0;
-    lcd.setCursor(1, 0);
-    lcd.print(MAIN_TITLE);
   }
-  _d = getData_(500);
+
+  _d = getData_(true);
   _w = toWeight(_d);
-  lcd_(_w);
+  oled_M(_w);
 
   // feature: Auto turn off the screen backlight
   // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
@@ -133,14 +144,14 @@ void loop()
       }
       for (byte i = 0; i < 2; i++)
       {
-        lcd.noBacklight();
+        oled.dim(true);
         if (delay_W(FLICKER_DELAY) != 0)
         {
-          lcd.backlight();
+          oled.dim(false);
           break;
         }
 
-        lcd.backlight();
+        oled.dim(false);
         if (delay_W(FLICKER_DELAY) != 0)
           break;
       }
@@ -161,7 +172,7 @@ void loop()
     if (q == RECORD_NUM)
       q = 0;
     record_w[q] = _w;
-    Serial.println("\r\nRecord: " + String(_w));
+    Serial.println("Record: " + String(_w));
   }
   prev_d = _d;
 
@@ -169,7 +180,7 @@ void loop()
   // Interrupt handling
   while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1)
   {
-    Serial.print('*');
+    // Serial.print('*');
     prev_interrupt = interrupt;
     _isr = 1;
     byte _tare = tare;
@@ -181,15 +192,20 @@ void loop()
     //
     if (_tare == 1 || _mode == 1)
     {
-      lcd.setCursor(1, 0);
-      lcd.print("Digital Scale   ");
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print(MAIN_TITLE);
+      oled.display();
     }
     // feature: Adjust the scale to 0 kg
     if (_tare == 1)
     {
       tare = 0;
-      lcd.setCursor(1, 1);
-      lcd.print("Taring...       ");
+      oled.setCursor(18, 20);
+      oled.setTextSize(2);
+      oled.print("Taring...");
+      oled.setTextSize(1);
+      oled.display();
       for (byte i = 0; i < 5; i++)
       {
         Zero = getData_Avg();
@@ -197,7 +213,10 @@ void loop()
           break;
       }
       sensor.setZero(Zero);
-      lcd_(getWeight());
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print(MAIN_TITLE);
+      oled_(getWeight());
     }
 
     // feature: Change weight unit from kilogram to pound
@@ -205,22 +224,22 @@ void loop()
     {
       mode = 0;
       Mode = (Mode == KG_MODE) ? LB_MODE : KG_MODE;
-      lcd_(_w);
+      oled_(_w);
     }
     //
     if (_up == 1 || _down == 1)
-    {
       delay(100);
-      lcd.setCursor(1, 0);
-      lcd.print("Adjust Scale    ");
-    }
     // feature: Adjust weighting result up
     float w;
     while (_up == 1 && up == 1)
     {
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print("Adjust Scale");
+      oled.display();
       Scale -= 0.5;
       w = _d / Scale;
-      lcd_(w);
+      oled_(w);
 
       if (digitalRead(UP) == LOW)
         Scale -= 2;
@@ -231,9 +250,13 @@ void loop()
     // feature: Adjust weighting result down
     while (_down == 1 && down == 1)
     {
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print("Adjust Scale");
+      oled.display();
       Scale += 0.5;
       w = _d / Scale;
-      lcd_(w);
+      oled_(w);
 
       if (digitalRead(DOWN) == LOW)
         Scale += 2;
@@ -242,11 +265,6 @@ void loop()
     }
 
     // feature: View the results of the last weightings
-    if (_record == 1)
-    {
-      lcd.setCursor(1, 0);
-      lcd.print("Record Weight:  ");
-    }
     k = 0;
     while (_record == 1 && record == 1)
     {
@@ -258,7 +276,11 @@ void loop()
         break;
       }
 
-      lcd_(record_w[(q - k + RECORD_NUM + 1) % RECORD_NUM]);
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print("Record Weight:");
+      oled.display();
+      oled_(record_w[(q - k + RECORD_NUM + 1) % RECORD_NUM]);
       if (delay_I(SHOW_RECORD_TIME, &record) == 1)
         prev_interrupt++;
     }
@@ -287,23 +309,71 @@ void loop()
 
 // Additional functions
 //----------------------------------------------------------------------------------------------------------------------
-void lcd_(float w)
+void oled_(float w)
 {
   if (w < 0 && w > -ABSOLUTE_ERROR)
     return;
-  lcd.setCursor(1, 1);
+  oled.setTextSize(2);
+  oled.setCursor(28, 24);
   if (Mode == LB_MODE)
   {
-    lcd.print(w * KG_TO_LB);
-    lcd.print(" lb    ");
+    oled.print(w * KG_TO_LB);
+    oled.setTextSize(1);
+    oled.print(" lb    ");
   }
   else
   {
-    lcd.print(w);
-    lcd.print(" kg    ");
+    oled.print(w);
+    oled.setTextSize(1);
+    oled.print(" kg    ");
   }
+  oled.display();
 }
+//
+void oled_M(float w)
+{
+  if (w < 0 && w > -ABSOLUTE_ERROR)
+    return;
+  oled.clearDisplay();
+  oled.setCursor(24, 0);
+  oled.println(MAIN_TITLE);
+  oled.setTextSize(2);
+  oled.setCursor(28, 24);
+  if (Mode == LB_MODE)
+  {
+    oled.print(w * KG_TO_LB);
+    oled.setTextSize(1);
+    oled.print(" lb    ");
+  }
+  else
+  {
+    oled.print(w);
+    oled.setTextSize(1);
+    oled.print(" kg    ");
+  }
+  oled.display();
+}
+/**
+ * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
+ */
+byte sleep_(byte sensitivity)
+{
+  Serial.print("Sleeping...");
+  oled.clearDisplay();
+  oled.display();
+  oled.dim(true);
+  byte retval = 0;
+  setGain(GAIN_64);
 
+  retval = delay_W(0xffff, 500, sensitivity * Absolute_error);
+  if (retval == 1)
+    Serial.println(" > Awake: Detect Weight Changes");
+  if (retval == 2)
+    Serial.println(" > Awake: Detect Interrupt");
+  setGain(GAIN_128);
+  oled.dim(false);
+  return retval;
+}
 /**
  * @brief Delay function with the ability to _detect the interruption signal and weight changes
  *
@@ -327,7 +397,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
     if (timeout == 0xffff)
     {
       delay(time2listen);
-      d = getData_(1000);
+      d = getData_(true);
     }
     else if (TIME_END > t + time2listen)
     {
@@ -343,7 +413,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
     }
 
     if (flag == 1)
-      if (abs(d) > error)
+      if (abs(d - Zero) > 5 * error)
       {
         _detect = 1;
         break;
@@ -351,7 +421,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
       else
         continue;
 
-    if (abs(d) < error)
+    if (abs(d - Zero) < error)
     {
       flag = 1;
       continue;
@@ -374,24 +444,7 @@ byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
   }
   return (t == TIME_END) ? 0 : 2;
 }
-
-/**
- * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
- */
-byte sleep_(byte sensitivity)
-{
-  lcd.clear();
-  lcd.noBacklight();
-  byte retval = 0;
-  setGain(GAIN_64);
-
-  retval = delay_W(0xffff, 300, sensitivity * Absolute_error);
-  // Serial.println("\r\nAwake: " + String(retval));
-  setGain(GAIN_128);
-  lcd.backlight();
-  return retval;
-}
-
+//
 byte delay_I(uint32_t timeout, volatile byte *isrCtl)
 {
   unsigned long t = millis() + timeout;
@@ -424,35 +477,50 @@ void sort_(int32_t arr[], byte n, int32_t avg)
   }
 }
 
-int32_t getData_Avg(byte K, uint32_t *error)
+int32_t getData_Avg()
 {
   const byte N = 5;
+  const byte K = 5;
   int32_t d[N];
   int32_t d_avg = 0;
-  int32_t d_worst = 0;
+  uint32_t d_worst = 0;
   int32_t d_temp = 0;
-  byte k = 0;
+  byte count = 0;
+  byte countZ = 0;
 
-  for (byte i = 0; i < N; i++)
+  for (byte i = 0; i < 2 * N; i++)
   {
     d_temp = sensor.getData();
+    // if (d_temp != 16380 && d_temp != 8190)
+    //   Serial.print("`" + String(d_temp));
+
+    if (d_temp == -1)
+      continue;
     if (abs(d_temp) < Scale * MAX_LOAD)
     {
-      d[i] = d_temp;
+      d[count] = d_temp;
       d_avg += d_temp;
-    }
-    else
-    {
-      i--;
+      count++;
+      if (count == N)
+        break;
     }
   }
 
+  if (count < N)
+    return 0x7fffff;
   d_avg /= N;
   sort_(d, N, d_avg);
   d_worst = abs(d[N - 1] - d_avg);
-  while (k < K && d_worst > Absolute_error)
+
+  count = 0;
+  while (count < K && d_worst > Absolute_error)
   {
     d_temp = sensor.getData();
+    // if (d_temp != 16380 && d_temp != 8190)
+    //   Serial.print("`" + String(d_temp));
+
+    if (d_temp == -1)
+      continue;
     if (abs(d_temp - d_avg) < d_worst)
     {
       d_avg += (d_temp - d[N - 1]) / N;
@@ -460,25 +528,28 @@ int32_t getData_Avg(byte K, uint32_t *error)
       sort_(d, N, d_avg);
       d_worst = abs(d[N - 1] - d_avg);
     }
-    k++;
+    count++;
   }
 
-  *error = d_worst;
+  sensor_error = d_worst;
+  // Serial.print('_');
   return d_avg;
 }
 //
-int32_t getData_(uint16_t delay_time)
+int32_t getData_(byte allow_delay)
 {
-  byte i = 0;
   int32_t d = getData_Avg();
-  if (sensor_error > Absolute_error)
+  if (d != 0x7fffff && sensor_error < Absolute_error)
+    return d;
+
+  if (allow_delay == 0)
     d = getData_Avg();
 
-  if (delay_time > 0 && sensor_error > Absolute_error)
+  if (allow_delay == 1)
   {
-    for (i = 1; i < 3; i++)
+    for (byte i = 0; i < 2; i++)
     {
-      delay(delay_time / 2);
+      delay(105);
       d = getData_Avg();
       if (sensor_error < Absolute_error)
         break;
@@ -486,9 +557,7 @@ int32_t getData_(uint16_t delay_time)
   }
 
   if (sensor_error > Absolute_error)
-    Serial.println("\r\nE-" + String(i) + '-' + String(toWeight(d)) + '-' + String(sensor_error));
-  else
-    Serial.print('_');
+    Serial.println("Error Weight: " + String(toWeight(d)) + " +-" + String(sensor_error / Scale));
   return d;
 }
 
@@ -511,11 +580,12 @@ void setGain(byte gain)
     k = 0.5;
   else
     return;
-  
+
   Gain = gain;
   _d *= k;
   Scale *= k;
   Absolute_error *= k;
+  Zero *= k;
   sensor.setGain(gain);
 }
 

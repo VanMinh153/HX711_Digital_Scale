@@ -6,17 +6,17 @@
 
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define I2C_ADDRESS 0x3C
-Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET);
+Adafruit_SSD1306 oled(128, 64, &Wire, OLED_RESET);
 
 void setup() {
-  display.begin(SSD1306_SWITCHCAPVCC, I2C_ADDRESS);
+  oled.begin(SSD1306_SWITCHCAPVCC, I2C_ADDRESS);
   
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0, 0);
-  display.println("Hello, world!");
-  display.display();
+  oled.clearDisplay();
+  oled.setTextSize(1);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(0, 0);
+  oled.println("Hello, world!");
+  oled.display();
 }
 
 void loop() {

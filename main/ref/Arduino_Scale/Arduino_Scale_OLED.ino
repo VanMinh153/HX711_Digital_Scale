@@ -18,7 +18,7 @@
 #define AVG 5
 
 HX711 sensor(DOUT, PD_SCLK);
-Adafruit_SSD1306 display(128, 64, &Wire, -1);
+Adafruit_SSD1306 oled(128, 64, &Wire, -1);
 
 void setup()
 {
@@ -32,16 +32,16 @@ void setup()
   sensor.setGain(GAIN_128);
   sensor.setScale(SCALE);
 
-  display.begin(SSD1306_SWITCHCAPVCC, I2C_ADDRESS);
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(24, 0);
-  display.println("Digital Scale");
+  oled.begin(SSD1306_SWITCHCAPVCC, I2C_ADDRESS);
+  oled.clearDisplay();
+  oled.setTextSize(1);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(24, 0);
+  oled.println("Digital Scale");
 
-  display.setCursor(28, 20);
-  display.println("SOICT - HUST");
-  display.display();
+  oled.setCursor(28, 20);
+  oled.println("SOICT - HUST");
+  oled.display();
 }
 
 int  scale = SCALE;
@@ -51,19 +51,19 @@ void loop()
 {
   w = sensor.getAverageWeight(10, 20);
 
-  display_(w);
+  oled_(w);
 
   if (digitalRead(TARE) == LOW)
   {
     sensor.setToZerro();
-    display_("Taring...");
+    oled_("Taring...");
   }
 
   while(digitalRead(UP) == LOW)
   {
     scale -= 2;
     sensor.setScale(scale);
-    display_(sensor.getWeight());
+    oled_(sensor.getWeight());
     delay(50);
   }
   
@@ -71,35 +71,35 @@ void loop()
   {
     scale += 2;
     sensor.setScale(scale);
-    display_(sensor.getWeight());
+    oled_(sensor.getWeight());
     delay(50);
   }
   delay(50);
 }
 
-void display_(float w) {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(24, 0);
-  display.println("Digital Scale");
+void oled_(float w) {
+  oled.clearDisplay();
+  oled.setTextSize(1);
+  oled.setCursor(24, 0);
+  oled.println("Digital Scale");
 
-  display.setCursor(28, 24);
-  display.setTextSize(2);
-  display.print(w);
-  display.setTextSize(1);
-  display.println(" kg");
-  display.display();
+  oled.setCursor(28, 24);
+  oled.setTextSize(2);
+  oled.print(w);
+  oled.setTextSize(1);
+  oled.println(" kg");
+  oled.display();
 }
 
 
-void display_(const char *msg) {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(24, 0);
-  display.println("Digital Scale");
+void oled_(const char *msg) {
+  oled.clearDisplay();
+  oled.setTextSize(1);
+  oled.setCursor(24, 0);
+  oled.println("Digital Scale");
 
-  display.setCursor(15, 20);
-  display.setTextSize(2);
-  display.print(msg);
-  display.display();
+  oled.setCursor(15, 20);
+  oled.setTextSize(2);
+  oled.print(msg);
+  oled.display();
 }
