@@ -1,0 +1,8 @@
+{
+    "sketch": "main.ino",
+    "output": "build",
+    "board": "esp32:esp32:lolin_s2_mini",
+    "port": "COM6",
+    "programmer": "esptool",
+    "configuration": "CDCOnBoot=default,MSCOnBoot=default,DFUOnBoot=default,PartitionScheme=default,DebugLevel=none,EraseFlash=none"
+}
