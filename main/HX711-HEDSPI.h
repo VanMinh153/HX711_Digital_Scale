@@ -1,4 +1,3 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\HX711-HEDSPI.h"
 /**
  * @brief       Library for HX711
  * @author     Nguyen Van Minh - SOICT-HUST

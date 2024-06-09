@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\code_debug.cpp"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\C, CPP test\\code_debug.cpp"
 #include <stdio.h>
 #define haha() func(1)
 

@@ -12,9 +12,9 @@
 // #define SCALE 1030
 
 // #define AVG_TIME2READ_G128 105 // 105ms
-# 53 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-HX711 sensor(6, 7, 25, 420);
-# 81 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 59 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+HX711 sensor(38, 39, 25, 420);
+# 87 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 byte Gain = 25;
@@ -58,9 +58,9 @@ float toWeight(int32_t data);
 byte sleep_(byte sensitivity = 2);
 byte delay_W(uint16_t timeout, uint16_t time2listen = 50, uint16_t error = Absolute_error);
 byte delay_I(uint32_t timeout, volatile byte *isrCtl = 
-# 123 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino" 3 4
+# 129 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino" 3 4
                                                       __null
-# 123 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 129 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
                                                           );
 void setGain(byte gain);
 
@@ -259,9 +259,9 @@ void loop()
 
     if (_record == 1)
       
-# 320 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino" 3 4
+# 326 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino" 3 4
      __null
-# 320 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 326 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
          ;
     else
     {
@@ -300,7 +300,7 @@ void lcd_(float w)
  * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
 
  */
-# 356 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 362 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
 byte sleep_(byte sensitivity)
 {
   USBSerial.print("Sleeping...");
@@ -333,7 +333,7 @@ byte sleep_(byte sensitivity)
  * @return byte       0: timeout, 1: weight changes, 2: interrupt signal
 
  */
-# 381 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 387 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
 byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
 {
   if (_detect == 1)
@@ -401,9 +401,9 @@ byte delay_I(uint32_t timeout, volatile byte *isrCtl)
 {
   unsigned long t = millis() + timeout;
   if (isrCtl != 
-# 447 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino" 3 4
+# 453 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino" 3 4
                __null
-# 447 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 453 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
                    )
   {
     while (*isrCtl == 0 && millis() < t)
@@ -446,7 +446,7 @@ int32_t getData_Avg(HX711 adc)
 
   for (byte i = 0; i < 2 * N; i++)
   {
-    d_temp = adc.getData_H();
+    d_temp = adc.getData();
     if (d_temp == -1)
       continue;
     if (d_temp == prev_getData)
@@ -472,7 +472,7 @@ int32_t getData_Avg(HX711 adc)
   count = 0;
   while (count < K && d_worst > Absolute_error)
   {
-    d_temp = adc.getData_H();
+    d_temp = adc.getData();
     if (d_temp == -1)
       continue;
     if (abs(d_temp - d_avg) < d_worst)
@@ -516,7 +516,7 @@ int32_t getData_(byte allow_delay)
     USBSerial.println("Error Weight: " + String(toWeight(d)) + " +-" + String(sensor_error / Scale));
   return d;
 }
-# 604 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
+# 610 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
 float toWeight(int32_t data)
 {
   return (long)(data - Zero) / Scale;
@@ -543,7 +543,7 @@ void setGain(byte gain)
   Absolute_error *= k;
   Zero *= k;
   sensor.setGain(gain);
-  sensor.getData_H();
+  sensor.getData();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

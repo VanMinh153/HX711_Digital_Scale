@@ -1,5 +1,3 @@
-#include <Arduino.h>
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
 #include "HX711-HEDSPI.h"
 #include <LiquidCrystal_I2C.h>
 //"C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-442a798083\\esp32c3\\include\\freertos\\FreeRTOS-Kernel\\include\\freertos",
@@ -132,21 +130,6 @@ byte delay_I(uint32_t timeout, volatile byte *isrCtl = NULL);
 void setGain(byte gain);
 
 //----------------------------------------------------------------------------------------------------------------------
-#line 133 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-void setup();
-#line 166 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-void loop();
-#line 343 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-void lcd_(float w);
-#line 362 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-byte sleep_(byte sensitivity);
-#line 387 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error);
-#line 450 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-byte delay_I(uint32_t timeout, volatile byte *isrCtl);
-#line 541 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
-int32_t getData_(byte allow_delay);
-#line 133 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\main.ino"
 void setup()
 {
   Serial.begin(57600);

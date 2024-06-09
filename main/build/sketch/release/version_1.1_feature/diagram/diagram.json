@@ -4,19 +4,13 @@
   "author": "Minh Nguyễn",
   "editor": "wokwi",
   "parts": [
+    { "type": "board-wemos-s2-mini", "id": "esp", "top": -20.26, "left": -340.8, "attrs": {} },
     {
-      "type": "board-esp32-c3-devkitm-1",
-      "id": "esp",
-      "top": -38.7,
-      "left": -339.78,
-      "attrs": {}
-    },
-    {
-      "type": "board-ssd1306",
-      "id": "oled",
-      "top": 31.94,
-      "left": -460.57,
-      "attrs": { "i2cAddress": "0x3c" }
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -176,
+      "left": -340,
+      "attrs": { "pins": "i2c" }
     },
     {
       "type": "wokwi-hx711",
@@ -28,8 +22,8 @@
     {
       "type": "wokwi-pushbutton",
       "id": "btnUp",
-      "top": 207,
-      "left": -470,
+      "top": 207.8,
+      "left": -470.4,
       "attrs": { "color": "grey", "label": "UP" }
     },
     {
@@ -62,26 +56,24 @@
     }
   ],
   "connections": [
-    [ "esp:TX", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "oled:GND", "esp:GND.1", "black", [ "v-9.6", "h76.8", "v-48" ] ],
-    [ "oled:VCC", "esp:3V3.2", "red", [ "v-9.6", "h67.35", "v-28.8", "h19.2" ] ],
-    [ "oled:SCL", "esp:3", "green", [ "v-9.6", "h57.9", "v-9.6" ] ],
-    [ "oled:SDA", "esp:2", "green", [ "v-9.6", "h48.07", "v-19.2" ] ],
-    [ "cell:GND", "esp:GND.10", "black", [ "h-9.6", "v-19.5" ] ],
-    [ "cell:VCC", "esp:5V.2", "#8f4814", [ "h-9.6", "v96", "h-144", "v-19.2" ] ],
-    [ "cell:DT", "esp:6", "green", [ "h-9.6", "v47.5" ] ],
-    [ "cell:SCK", "esp:7", "green", [ "h-9.6", "v28" ] ],
-    [ "esp:GND.5", "btnUp:2.l", "black", [ "v9.6", "h-153.6", "v114.2" ] ],
+    [ "esp:VBUS", "cell:VCC", "green", [ "h47.85", "v-48" ] ],
+    [ "esp:GND.1", "cell:GND", "black", [ "h57.45", "v-66.9" ] ],
+    [ "esp:GND.2", "btnUp:2.l", "black", [ "v0", "h19.05", "v67.2", "h-249.6", "v105.6" ] ],
+    [ "esp:GND.2", "lcd:GND", "black", [ "v0", "h9.45", "v-96", "h-105.6", "v-115.2" ] ],
+    [ "esp:3V3", "lcd:VCC", "green", [ "h-9.6", "v-211.2" ] ],
+    [ "esp:33(SDA)", "lcd:SDA", "green", [ "h9.45", "v-67.2", "h-105.6", "v-96" ] ],
+    [ "esp:35(SCL)", "lcd:SCL", "green", [ "v0", "h9.45", "v-57.6", "h-105.6", "v-86.4" ] ],
     [ "btnUp:2.r", "btnDown:2.l", "green", [ "h0" ] ],
     [ "btnDown:2.r", "btnMode:2.l", "green", [ "h0" ] ],
     [ "btnMode:2.r", "btnTare:2.l", "green", [ "h0" ] ],
-    [ "btnUp:1.r", "esp:9", "green", [ "v-85.6", "h163", "v-115.2" ] ],
-    [ "btnDown:1.r", "esp:8", "green", [ "v-85.6", "h63", "v-105.6" ] ],
-    [ "btnMode:1.r", "esp:5", "green", [ "v-86.4", "h-37", "v-67.2" ] ],
-    [ "btnTare:1.r", "esp:4", "green", [ "v-86.4", "h-137", "v-57.6" ] ],
     [ "btnTare:2.r", "btnRecord:2.l", "green", [ "h0" ] ],
-    [ "btnRecord:1.r", "esp:18", "green", [ "v-85.6", "h-237", "v-38.4" ] ]
+    [ "btnUp:1.r", "esp:16", "green", [ "v-86.4", "h173", "v-76.8" ] ],
+    [ "btnDown:1.r", "esp:17", "green", [ "v-85.6", "h72.6", "v-76.8" ] ],
+    [ "btnMode:1.r", "esp:18", "green", [ "v-85.6", "h-27.4", "v-86.4" ] ],
+    [ "btnTare:1.r", "esp:15", "green", [ "v-85.6", "h-127.4", "v-57.6" ] ],
+    [ "btnRecord:1.r", "esp:21", "green", [ "v-85.6", "h-227.4", "v-86.4" ] ],
+    [ "esp:38", "cell:SCK", "green", [ "v0" ] ],
+    [ "esp:39", "cell:DT", "green", [ "v0", "h57.45" ] ]
   ],
   "dependencies": {}
 }
