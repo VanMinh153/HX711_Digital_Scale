@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\release\\version_1.1_feature\\ref\\HX711-HEDSPI.cpp"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\release\\version_1.1_feature\\ref\\HX711-HEDSPI.cpp"
 /**
  * @brief       Library for HX711
  * @author     Nguyen Van Minh - SOICT-HUST
@@ -45,7 +45,7 @@ float HX711::getWeight()
 /**
  * @brief     Get data from HX711 and set up PD_SCK = HIGH after
  */
-int32_t HX711::getData_H(byte gain, uint16_t check_freq)
+int32_t HX711::readDataHigh(byte gain, uint16_t check_freq)
 {
   const byte response_time = 1;
   digitalWrite(PD_SCK, LOW);

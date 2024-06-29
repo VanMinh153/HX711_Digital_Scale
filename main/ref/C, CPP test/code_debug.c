@@ -1,12 +1,12 @@
 #include <stdio.h>
 
-#define haha(a) func(a)
+#define func_ref(a) func(a)
 
 int func(int a = 5);
 
 int main()
 {
-  haha();
+  func_ref(2);
   return 1;
 }
 

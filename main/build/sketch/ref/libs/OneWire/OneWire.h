@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\OneWire\\OneWire.h"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\OneWire\\OneWire.h"
 #ifndef OneWire_h
 #define OneWire_h
 

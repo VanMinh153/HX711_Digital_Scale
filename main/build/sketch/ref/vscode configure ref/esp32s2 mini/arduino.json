@@ -1,0 +1,8 @@
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\vscode configure ref\\esp32s2 mini\\arduino.json"
+{
+    "sketch": "main.ino",
+    "output": "build",
+    "board": "esp32_2.0.17:esp32:lolin_s2_mini",
+    "configuration": "CDCOnBoot=default,MSCOnBoot=default,DFUOnBoot=default,PartitionScheme=default,DebugLevel=none,EraseFlash=none",
+    "programmer": "esptool"
+}

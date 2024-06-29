@@ -19,7 +19,7 @@ getData_L(GAIN_64) ~ 100
 #define D128 16380
 #define D64 8190
 
-int32_t getData_H(byte Gain, uint16_t check_freq);
+int32_t readDataHigh(byte Gain, uint16_t check_freq);
 int32_t getData_L(byte Gain, uint16_t check_freq);
 void test_H(byte Gain, uint16_t check_freq, byte Loop);
 void test_L(byte Gain, uint16_t check_freq, byte Loop);
@@ -58,7 +58,7 @@ void loop()
 /**
  * @brief     Get data from HX711 and set up PD_SCK = HIGH after
  */
-int32_t getData_H(byte Gain, uint16_t check_freq)
+int32_t readDataHigh(byte Gain, uint16_t check_freq)
 {
   const byte response_time = 1;
   digitalWrite(PD_SCK, LOW);
@@ -147,12 +147,12 @@ int32_t getData_L(byte Gain, uint16_t check_freq)
 //
 void test_H(byte Gain, uint16_t check_freq, byte Loop)
 {
-  data = getData_H(Gain, check_freq); // first getData_H() is to set up Gain for HX711
+  data = readDataHigh(Gain, check_freq); // first getData_H() is to set up Gain for HX711
   pass = 0;
   wait_avg = 0;
   for (byte i = 0; i < Loop; i++)
   {
-    data = getData_H(Gain, check_freq);
+    data = readDataHigh(Gain, check_freq);
     wait_avg += wait;
 
     if ((data == D128 && Gain == GAIN_128) || (data == D64 && Gain == GAIN_64))

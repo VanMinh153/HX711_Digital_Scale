@@ -1,138 +1,65 @@
-#include "HX711-HEDSPI.h"
-#include <LiquidCrystal_I2C.h>
-//"C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-442a798083\\esp32c3\\include\\freertos\\FreeRTOS-Kernel\\include\\freertos",
-// C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32\tools\esp32-arduino-libs\idf-release_v5.1-442a798083\esp32c3\include\freertos\FreeRTOS-Kernel\include\freertos
+#include "SOICT_HX711.h"
+// #include "main.h"
+#include "config.h"
+#include "utility.h"
+#include "screen.h"
 
-// define one of the following macros to choose the correct hardware
-// HX711, HX711x4_Sync, HX711x4_Async
-#define DIAGRAM_HX711
-
-#define SCALE 420
-// #define SCALE 1030
-#define MAX_LOAD 200
-// #define AVG_TIME2READ_G128 105 // 105ms
-#define ABSOLUTE_ERROR 0.1f
-#define AUTO_SLEEP_TIME 3000
-#define RECORD_TIME 600
-#define FLICKER_DELAY 350
-#define SLEEP_DELAY 2000
-#define SHOW_RECORD_TIME 2500
-#define SHOW_ISR_TIME 2000
-#define DEBOUNCE_TIME 200
-#define RECORD_NUM 3
-#define KG_MODE 0
-#define LB_MODE 1
-#define KG_TO_LB 2.204623f
-#define MAIN_TITLE "Digital Scale"
-#define LCD_I2C_ADDRESS 0x27
-
-#if defined(ARDUINO_ESP32_DEV)
-#define SDA 21
-#define SCL 22
-#elif defined(ARDUINO_ESP32C3_DEV)
-#define SDA 2
-#define SCL 3
-#define TARE 4
-#define MODE 5
-#define DOWN 8
-#define UP 9
-#define RECORD 18
-#elif defined(ARDUINO_LOLIN_S2_MINI)
-#define SDA 33
-#define SCL 35
-#define TARE 15
-#define MODE 18
-#define DOWN 17
-#define UP 16
-#define RECORD 21
+#if defined(HW_HX711)
+HX711 sensor(DATA_PIN, CLK_PIN, CHAN_A_GAIN_128);
+#elif defined(HW_HX711x4)
+HX711List sensor(4, data_pin, clk_pin, CHAN_A_GAIN_128);
 #endif
 
-#if defined(DIAGRAM_HX711)
-#if defined(ARDUINO_ESP32_DEV)
-#elif defined(ARDUINO_ESP32C3_DEV)
-#define DOUT 6
-#define PD_SCK 7
-#elif defined(ARDUINO_LOLIN_S2_MINI)
-#define DOUT 38
-#define PD_SCK 39
-#endif
-HX711 sensor(DOUT, PD_SCK, GAIN_128, SCALE);
-#elif defined(DIAGRAM_HX711x4_Sync)
-#define DOUT1 6
-#define PD_SCK1 7
-#define DOUT2 16
-#define PD_SCK2 17
-#define DOUT3 37
-#define PD_SCK3 38
-#define DOUT4 39
-#define PD_SCK4 40
-HX711x4 sensor(DOUT1, PD_SCK1, DOUT2, PD_SCK2, DOUT3, PD_SCK3, DOUT4, PD_SCK4, GAIN_128, SCALE);
-#elif defined(DIAGRAM_HX711x4_Async) && defined(ARDUINO_LOLIN_S2_MINI)
-#define DOUT1 39
-#define PD_SCK1 38
-#define DOUT2 12
-#define PD_SCK2 13
-#define DOUT3 20
-#define PD_SCK3 11
-#define DOUT4 8
-#define PD_SCK4 9
-HX711x4_Async sensor(DOUT1, PD_SCK1, DOUT2, PD_SCK2, DOUT3, PD_SCK3, DOUT4, PD_SCK4, GAIN_128, SCALE);
-HX711 adc[4];
-adc[0] = sensor.hx711[0];
-adc[1] = sensor.hx711[1];
-adc[2] = sensor.hx711[2];
-adc[3] = sensor.hx711[3];
+#if defined(HW_LCD)
+LCD_I2C screen(LCD_I2C_ADDRESS, 16, 2);
 #endif
 
-LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, 16, 2);
+#if defined(HW_OLED)
+OLED_SSD1306 screen(128, 64);
+#endif
 
-byte Gain = GAIN_128;
+// hx711_gain_t Gain = CHAN_A_GAIN_128;
+int Tare = 0;
 float Scale = SCALE;
-int32_t Zero = 0;
-byte Mode = KG_MODE;
+uint8_t Mode = KG_MODE;
 uint16_t Absolute_error = (uint16_t)(Scale * ABSOLUTE_ERROR);
-uint32_t sensor_error = 0;
-volatile byte tare = 0;
-volatile byte mode = 0;
-volatile byte up = 0;
-volatile byte down = 0;
-volatile byte record = 0;
-volatile byte interrupt = 0;
-volatile long prev_press = millis();
-byte prev_interrupt = 0;
-int32_t _d = 0;
-float prev_d = 0;
-float _w = 0;
+// //-------------------------------------------------------
+volatile uint8_t tare = 0;
+volatile uint8_t mode = 0;
+volatile uint8_t up = 0;
+volatile uint8_t down = 0;
+volatile uint8_t record = 0;
+volatile uint8_t interrupt = 0;
+volatile unsigned long prev_press = millis();
+uint8_t prev_interrupt = 0;
+// //-------------------------------------------------------
+int _data = 0;
+float prev_data = 0;
+float _weight = 0;
+float record_weight[RECORD_NUM];
+
 unsigned long timer = millis();
-float record_w[RECORD_NUM];
-byte q = 0;
-byte k = 0;
-int32_t prev_getData = 0;
-byte _sleep = 0;
-byte _detect = 0;
-byte _isr = 0;
+// int prev_readData_val = 0;
+// uint32_t sensor_error = 0;
+uint8_t sleep_flag = 0;
+uint8_t wake_up_flag = 0;
+uint8_t interrupt_flag = 0;
+
+void IRAM_ATTR modeISR()
+{
+  if (millis() - prev_press < DEBOUNCE_TIME)
+    return;
+  prev_press = millis();
+  // mode = 1;
+  // interrupt++;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
-void IRAM_ATTR recordISR();
-void IRAM_ATTR tareISR();
-void IRAM_ATTR modeISR();
-void IRAM_ATTR upISR();
-void IRAM_ATTR downISR();
-void lcd_(float _w);
-void sort_(int32_t arr[], byte n, int32_t avg);
-int32_t getData_Avg(HX711 adc);
-int32_t getData_(byte allow_delay = 1);
-float getWeight();
-float toWeight(int32_t data);
-byte sleep_(byte sensitivity = 2);
-byte delay_W(uint16_t timeout, uint16_t time2listen = 50, uint16_t error = Absolute_error);
-byte delay_I(uint32_t timeout, volatile byte *isrCtl = NULL);
-void setGain(byte gain);
-
-//----------------------------------------------------------------------------------------------------------------------
+#if defined(LCD)
 void setup()
 {
   Serial.begin(57600);
+
   pinMode(TARE, INPUT_PULLUP);
   pinMode(MODE, INPUT_PULLUP);
   pinMode(UP, INPUT_PULLUP);
@@ -145,7 +72,8 @@ void setup()
   attachInterrupt(RECORD, recordISR, RISING);
 
   Wire.begin(SDA, SCL);
-  sensor.init();
+  sensor.begin();
+
   lcd.init();
   delay(1000);
   getData_(true);
@@ -162,50 +90,51 @@ void setup()
   lcd.setCursor(1, 1);
   lcd.print("            ");
 }
+
 //----------------------------------------------------------------------------------------------------------------------
 void loop()
 {
-  if (_sleep = true || _isr == 1)
+  if (sleep_flag = 1 || interrupt_flag == 1)
   {
-    _sleep = false;
-    _isr = 0;
-    lcd.setCursor(1, 0);
-    lcd.print(MAIN_TITLE);
+    sleep_flag = 0;
+    interrupt_flag = 0;
+    screen.printTitle(MAIN_TITLE);
   }
-  _d = getData_(true);
-  _w = toWeight(_d);
-  lcd_(_w);
+  _data = getData_(true);
+  _weight = toWeight(_data);
+  lcd_(_weight);
 
   // feature: Auto turn off the screen backlight
   // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
-  if (_detect == true)
-    _detect = false;
-  if (abs(_d - prev_d) < 2 * Absolute_error)
+  if (wake_up_flag == 1)
+    wake_up_flag = 0;
+
+  if (abs(_data - prev_data) < 2 * Absolute_error)
   {
     while (millis() - timer > AUTO_SLEEP_TIME)
     {
-      if (_d == 0)
+      if (_data == 0)
       {
-        _sleep = true;
+        sleep_flag = 1;
         sleep_();
         break;
       }
-      for (byte i = 0; i < 2; i++)
+      for (uint8_t i = 0; i < 2; i++)
       {
         lcd.noBacklight();
-        if (delay_W(FLICKER_DELAY) != 0)
+        if (waitForWeightChange(FLICKER_DELAY) != 0)
         {
           lcd.backlight();
           break;
         }
 
         lcd.backlight();
-        if (delay_W(FLICKER_DELAY) != 0)
+        if (waitForWeightChange(FLICKER_DELAY) != 0)
           break;
       }
-      if (delay_W(FLICKER_DELAY) != 0)
+      if (waitForWeightChange(FLICKER_DELAY) != 0)
         break;
-      _sleep = true;
+      sleep_flag = 1;
       sleep_();
       break;
     }
@@ -214,28 +143,29 @@ void loop()
     timer = millis();
 
   // feature: Save the results of the last RECORD_NUM weightings
-  if (millis() - timer > RECORD_TIME && abs(_w - record_w[q]) > ABSOLUTE_ERROR && abs(_w) > ABSOLUTE_ERROR)
+  uint8_t q = 0;
+  if (millis() - timer > RECORD_TIME && abs(_weight - record_weight[q]) > ABSOLUTE_ERROR && abs(_weight) > ABSOLUTE_ERROR)
   {
     q++;
     if (q == RECORD_NUM)
       q = 0;
-    record_w[q] = _w;
-    Serial.println("Record: " + String(_w));
+    record_weight[q] = _weight;
+    // Serial.println("Record: " + String(_weight));
   }
-  prev_d = _d;
+  prev_data = _data;
 
   //----------------------------------------------------------------------------------------------------------------------
   // Interrupt handling
   while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1)
   {
     // Serial.print('*');
-    byte _tare = tare;
-    byte _mode = mode;
-    byte _up = up;
-    byte _down = down;
-    byte _record = record;
+    uint8_t _tare = tare;
+    uint8_t _mode = mode;
+    uint8_t _up = up;
+    uint8_t _down = down;
+    uint8_t _record = record;
     prev_interrupt = interrupt;
-    _isr = 1;
+    interrupt_flag = 1;
     //
     if (_tare == 1 || _mode == 1)
     {
@@ -248,8 +178,7 @@ void loop()
       tare = 0;
       lcd.setCursor(1, 1);
       lcd.print("Taring...       ");
-      Zero = getData_();
-      sensor.setZero(Zero);
+      Tare = getData_();
       lcd_(getWeight());
     }
 
@@ -258,7 +187,7 @@ void loop()
     {
       mode = 0;
       Mode = (Mode == KG_MODE) ? LB_MODE : KG_MODE;
-      lcd_(_w);
+      lcd_(_weight);
     }
     //
     if (_up == 1 || _down == 1)
@@ -272,7 +201,7 @@ void loop()
     while (_up == 1 && up == 1)
     {
       Scale -= 0.5;
-      w = _d / Scale;
+      w = _data / Scale;
       lcd_(w);
 
       if (digitalRead(UP) == LOW)
@@ -285,7 +214,7 @@ void loop()
     while (_down == 1 && down == 1)
     {
       Scale += 0.5;
-      w = _d / Scale;
+      w = _data / Scale;
       lcd_(w);
 
       if (digitalRead(DOWN) == LOW)
@@ -300,7 +229,7 @@ void loop()
       lcd.setCursor(1, 0);
       lcd.print("Record Weight:  ");
     }
-    k = 0;
+    uint8_t k = 0;
     while (_record == 1 && record == 1)
     {
       record = 0;
@@ -311,373 +240,252 @@ void loop()
         break;
       }
 
-      lcd_(record_w[(q - k + RECORD_NUM + 1) % RECORD_NUM]);
-      if (delay_I(SHOW_RECORD_TIME, &record) == 1)
+      lcd_(record_weight[(q - k + RECORD_NUM + 1) % RECORD_NUM]);
+      if (waitOnInterrupt(SHOW_RECORD_TIME, &record) == 1)
         prev_interrupt++;
     }
     //----------------------------------------------------------------------------------------------------------------------
     if (_up == 1 || _down == 1)
-    {
       Absolute_error = (uint32_t)(Scale * ABSOLUTE_ERROR);
-      sensor.setScale(Scale);
-    }
 
     if (_record == 1)
       NULL;
     else
     {
-      if (delay_I(SHOW_ISR_TIME) == 1)
+      if (waitOnInterrupt(SHOW_ISR_TIME) == 1)
         continue;
     }
 
-    if (_sleep == true)
+    if (sleep_flag == true)
       sleep_();
   }
   prev_interrupt = interrupt;
 
   delay(50);
 }
-
-// Additional functions
 //----------------------------------------------------------------------------------------------------------------------
-void lcd_(float w)
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+#elif defined(OLED)
+void setup()
 {
-  if (w < 0 && w > -ABSOLUTE_ERROR)
-    return;
-  lcd.setCursor(1, 1);
-  if (Mode == LB_MODE)
-  {
-    lcd.print(w * KG_TO_LB);
-    lcd.print(" lb    ");
-  }
-  else
-  {
-    lcd.print(w);
-    lcd.print(" kg    ");
-  }
+  Serial.begin(57600);
+
+  pinMode(TARE, INPUT_PULLUP);
+  pinMode(MODE, INPUT_PULLUP);
+  pinMode(UP, INPUT_PULLUP);
+  pinMode(DOWN, INPUT_PULLUP);
+  pinMode(RECORD, INPUT_PULLUP);
+  attachInterrupt(TARE, tareISR, RISING);
+  attachInterrupt(MODE, modeISR, RISING);
+  attachInterrupt(UP, upISR, RISING);
+  attachInterrupt(DOWN, downISR, RISING);
+  attachInterrupt(RECORD, recordISR, RISING);
+
+  Wire.begin(SDA, SCL);
+  sensor.begin();
+  oled.begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDRESS);
+  delay(1000);
+  getData_(true);
+  getData_(true);
+  getData_(true);
+
+  oled.clearDisplay();
+  oled.setTextSize(1);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(24, 0);
+  oled.println(MAIN_TITLE);
+  oled.setCursor(28, 20);
+  oled.println("SOICT - HUST");
+  oled.display();
+  delay(1000);
+  oled.clearDisplay();
+  oled.display();
 }
-/**
- * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
- */
-byte sleep_(byte sensitivity)
+//----------------------------------------------------------------------------------------------------------------------
+void loop()
 {
-  Serial.print("Sleeping...");
-  lcd.clear();
-  lcd.noBacklight();
-  byte retval = 0;
-  setGain(GAIN_64);
-
-  retval = delay_W(0xffff, 500, sensitivity * Absolute_error);
-  if (retval == 1)
-    Serial.println(" > Awake: Detect Weight Changes");
-  if (retval == 2)
-    Serial.println(" > Awake: Detect Interrupt");
-  setGain(GAIN_128);
-  lcd.backlight();
-  return retval;
-}
-/**
- * @brief Delay function with the ability to _detect the interruption signal and weight changes
- *
- * @param timeout     The maximum time to wait. if timeout = 0xffff, the function will wait indefinitely
- * @param time2listen The time to listen weight changes
- * @param error       Default is absolute error of the scale
- * @return byte       0: timeout, 1: weight changes, 2: interrupt signal
- */
-byte delay_W(uint16_t timeout, uint16_t time2listen, uint16_t error)
-{
-  if (_detect == 1)
-    return 1;
-
-  unsigned long t = millis();
-  unsigned long TIME_END = t + timeout;
-  byte flag = 0;
-  int32_t d = 0;
-
-  while (interrupt == prev_interrupt)
+  if (sleep_flag = 1 || interrupt_flag == 1)
   {
-    if (timeout == 0xffff)
+    sleep_flag = 0;
+    interrupt_flag = 0;
+  }
+
+  _data = getData_(true);
+  _weight = toWeight(_data);
+  oled_M(_weight);
+
+  // feature: Auto turn off the screen backlight
+  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
+  if (wake_up_flag == 1)
+    wake_up_flag = 0;
+
+  if (abs(_data - prev_data) < 2 * Absolute_error)
+  {
+    while (millis() - timer > AUTO_SLEEP_TIME)
     {
-      delay(time2listen);
-      d = getData_(true);
-    }
-    else if (TIME_END > t + time2listen + 105)
-    {
-      delay(time2listen);
-      d = getData_();
-      t = millis();
-    }
-    else
-    {
-      delay(abs((int)(TIME_END - t)));
-      t = TIME_END;
+      if (_data == 0)
+      {
+        sleep_flag = 1;
+        sleep_();
+        break;
+      }
+      for (uint8_t i = 0; i < 2; i++)
+      {
+        oled.dim(true);
+        if (waitForWeightChange(FLICKER_DELAY) != 0)
+        {
+          oled.dim(false);
+          break;
+        }
+
+        oled.dim(false);
+        if (waitForWeightChange(FLICKER_DELAY) != 0)
+          break;
+      }
+      if (waitForWeightChange(FLICKER_DELAY) != 0)
+        break;
+      sleep_flag = 1;
+      sleep_();
       break;
     }
-
-    if (flag == 1)
-      if (abs(d - Zero) > 5 * error)
-      {
-        _detect = 1;
-        break;
-      }
-      else
-        continue;
-
-    if (abs(d - Zero) < error)
-    {
-      flag = 1;
-      continue;
-    }
-
-    if (abs(_d - d) > error)
-    {
-      if (abs(d - getData_()) < 2 * error)
-      {
-        _detect = 1;
-        break;
-      }
-    }
-  }
-
-  if (_detect == 1)
-  {
-    timer = millis();
-    return 1;
-  }
-  return (t == TIME_END) ? 0 : 2;
-}
-//
-byte delay_I(uint32_t timeout, volatile byte *isrCtl)
-{
-  unsigned long t = millis() + timeout;
-  if (isrCtl != NULL)
-  {
-    while (*isrCtl == 0 && millis() < t)
-      delay(50);
   }
   else
+    timer = millis();
+
+  // feature: Save the results of the last RECORD_NUM weightings
+  uint8_t q = 0;
+  if (millis() - timer > RECORD_TIME && abs(_weight - record_weight[q]) > ABSOLUTE_ERROR && abs(_weight) > ABSOLUTE_ERROR)
   {
+    q++;
+    if (q == RECORD_NUM)
+      q = 0;
+    record_weight[q] = _weight;
+    // Serial.println("Record: " + String(_weight));
+  }
+  prev_data = _data;
+
+  //----------------------------------------------------------------------------------------------------------------------
+  // Interrupt handling
+  while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1)
+  {
+    // Serial.print('*');
+    uint8_t _tare = tare;
+    uint8_t _mode = mode;
+    uint8_t _up = up;
+    uint8_t _down = down;
+    uint8_t _record = record;
     prev_interrupt = interrupt;
-    while (interrupt == prev_interrupt && millis() < t)
-      delay(50);
-  }
-  return (millis() >= t) ? 0 : 1;
-}
-
-void sort_(int32_t arr[], byte n, int32_t avg)
-{
-  for (int i = 1; i < n; i++)
-  {
-    int key = arr[i];
-    int j = i - 1;
-    while (j >= 0 && abs(arr[j] - avg) > abs(key - avg))
+    interrupt_flag = 1;
+    //
+    if (_tare == 1 || _mode == 1)
     {
-      arr[j + 1] = arr[j];
-      j--;
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print(MAIN_TITLE);
+      oled.display();
     }
-    arr[j + 1] = key;
-  }
-}
-
-int32_t getData_Avg(HX711 adc)
-{
-  const byte N = 3;
-  const byte K = 5;
-  int32_t d[N];
-  int32_t d_avg = 0;
-  uint32_t d_worst = 0;
-  int32_t d_temp = 0;
-  byte count = 0;
-  byte countZ = 0;
-
-  for (byte i = 0; i < 2 * N; i++)
-  {
-    d_temp = adc.getData();
-    if (d_temp == -1)
-      continue;
-    if (d_temp == prev_getData)
+    // feature: Adjust the scale to 0 kg
+    if (_tare == 1)
     {
-      return prev_getData;
+      tare = 0;
+      oled.setCursor(18, 20);
+      oled.setTextSize(2);
+      oled.print("Taring...");
+      oled.setTextSize(1);
+      oled.display();
+
+      Tare = getData_();
+
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print(MAIN_TITLE);
+      oled_(getWeight());
     }
-    if (abs(d_temp) < Scale * MAX_LOAD)
+
+    // feature: Change weight unit from kilogram to pound
+    if (_mode == 1)
     {
-      d[count] = d_temp;
-      d_avg += d_temp;
-      count++;
-      if (count == N)
+      mode = 0;
+      Mode = (Mode == KG_MODE) ? LB_MODE : KG_MODE;
+      oled_(_weight);
+    }
+    //
+    if (_up == 1 || _down == 1)
+    {
+      delay(DEBOUNCE_TIME);
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print("Adjust Scale");
+      oled.display();
+    }
+    // feature: Adjust weighting result up
+    float w;
+    while (_up == 1 && up == 1)
+    {
+      Scale -= 0.5;
+      w = _data / Scale;
+      oled_(w);
+
+      if (digitalRead(UP) == LOW)
+        Scale -= 2;
+      else
+        up = 0;
+    }
+
+    // feature: Adjust weighting result down
+    while (_down == 1 && down == 1)
+    {
+      Scale += 0.5;
+      w = _data / Scale;
+      oled_(w);
+
+      if (digitalRead(DOWN) == LOW)
+        Scale += 2;
+      else
+        down = 0;
+    }
+
+    // feature: View the results of the last weightings
+    if (_record == 1)
+    {
+      oled.clearDisplay();
+      oled.setCursor(24, 0);
+      oled.print("Record Weight:");
+      oled.display();
+    }
+    uint8_t k = 0;
+    while (_record == 1 && record == 1)
+    {
+      record = 0;
+      k++;
+      if (k == RECORD_NUM + 1)
+      {
+        k = 0;
         break;
+      }
+
+      oled_(record_weight[(q - k + RECORD_NUM + 1) % RECORD_NUM]);
+      if (waitOnInterrupt(SHOW_RECORD_TIME, &record) == 1)
+        prev_interrupt++;
     }
-  }
+    //----------------------------------------------------------------------------------------------------------------------
+    if (_up == 1 || _down == 1)
+      Absolute_error = (uint32_t)(Scale * ABSOLUTE_ERROR);
 
-  if (count < N)
-    return 0x7fffff;
-  d_avg /= N;
-  sort_(d, N, d_avg);
-  d_worst = abs(d[N - 1] - d_avg);
-
-  count = 0;
-  while (count < K && d_worst > Absolute_error)
-  {
-    d_temp = adc.getData();
-    if (d_temp == -1)
-      continue;
-    if (abs(d_temp - d_avg) < d_worst)
+    if (_record == 1)
+      NULL;
+    else
     {
-      d_avg += (d_temp - d[N - 1]) / N;
-      d[N - 1] = d_temp;
-      sort_(d, N, d_avg);
-      d_worst = abs(d[N - 1] - d_avg);
-    }
-    count++;
-  }
-
-  sensor_error = d_worst;
-  prev_getData = d_avg;
-  // Serial.print('_');
-  return d_avg;
-}
-//
-#ifdef DIAGRAM_HX711
-int32_t getData_(byte allow_delay)
-{
-  int32_t d = getData_Avg(sensor);
-  if (d != 0x7fffff && sensor_error < Absolute_error)
-    return d;
-
-  if (allow_delay == 1)
-    d = getData_Avg();
-
-  if (allow_delay == 2)
-  {
-    delay(105);
-    d = getData_Avg();
-  }
-
-  if (d == 0x7fffff)
-  {
-    Serial.println("Error: Failed to get data from HX711");
-    return _d;
-  }
-  if (sensor_error > Absolute_error)
-    Serial.println("Error Weight: " + String(toWeight(d)) + " +-" + String(sensor_error / Scale));
-  return d;
-}
-#elif defined(DIAGRAM_HX711x4_Sync)
-int32_t getData_(byte allow_delay)
-{
-}
-#elif defined(DIAGRAM_HX711x4_Async)
-int32_t getData_(byte allow_delay)
-{
-  int32_t d;
-  int32_t d_all;
-  byte err_count = 0;
-
-  for (byte i = 0; i < 4; i++)
-  {
-    d = getData_Avg(adc[i]);
-    if (d != 0x7fffff && sensor_error < Absolute_error)
-      d_all += d;
-
-    if (allow_delay == 1)
-      d = getData_Avg(adc[i]);
-
-    if (allow_delay == 2)
-    {
-      delay(105);
-      d = getData_Avg(adc[i]);
+      if (waitOnInterrupt(SHOW_ISR_TIME) == 1)
+        continue;
     }
 
-    if (d == 0x7fffff)
-    {
-      Serial.println("Error: Failed to get data from HX711");
-      return _d;
-    }
-
-    if (sensor_error > Absolute_error)
-    {
-      err_count++;
-      d_all += d_all / i;
-    }
+    if (sleep_flag == true)
+      sleep_();
   }
+  prev_interrupt = interrupt;
 
-  if (err_count != 0)
-    Serial.println("Error Weight: " + String(toWeight(d_all)) + " +-" + String(sensor_error / Scale));
-  return d_all;
+  delay(50);
 }
 #endif
-
-float toWeight(int32_t data)
-{
-  return (long)(data - Zero) / Scale;
-}
-
-float getWeight()
-{
-  return (long)(getData_() - Zero) / Scale;
-}
-
-void setGain(byte gain)
-{
-  float k;
-  if (Gain == GAIN_64 && gain == GAIN_128)
-    k = 2;
-  else if (Gain == GAIN_128 && gain == GAIN_64)
-    k = 0.5;
-  else
-    return;
-
-  Gain = gain;
-  _d *= k;
-  Scale *= k;
-  Absolute_error *= k;
-  Zero *= k;
-  sensor.setGain(gain);
-  sensor.getData();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void IRAM_ATTR recordISR()
-{
-  if (millis() - prev_press < DEBOUNCE_TIME)
-    return;
-  prev_press = millis();
-  record = 1;
-  interrupt++;
-}
-
-void IRAM_ATTR tareISR()
-{
-  if (millis() - prev_press < DEBOUNCE_TIME)
-    return;
-  prev_press = millis();
-  tare = 1;
-  interrupt++;
-}
-
-void IRAM_ATTR modeISR()
-{
-  if (millis() - prev_press < DEBOUNCE_TIME)
-    return;
-  prev_press = millis();
-  mode = 1;
-  interrupt++;
-}
-
-void IRAM_ATTR upISR()
-{
-  if (millis() - prev_press < DEBOUNCE_TIME)
-    return;
-  prev_press = millis();
-  up = 1;
-  interrupt++;
-}
-
-void IRAM_ATTR downISR()
-{
-  if (millis() - prev_press < DEBOUNCE_TIME)
-    return;
-  prev_press = millis();
-  down = 1;
-  interrupt++;
-}

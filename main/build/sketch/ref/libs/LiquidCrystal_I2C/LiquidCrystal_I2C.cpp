@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp"
 // Based on the work by DFRobot
 
 #include "LiquidCrystal_I2C.h"

@@ -1,12 +1,13 @@
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\version_1.1_feature\\ref\\HX711-HEDSPI.cpp"
 /**
  * @brief       Library for HX711
  * @author     Nguyen Van Minh - SOICT-HUST
+ * @ref        HX711-SOLDERED library for arduino
  */
 
 #include "HX711-HEDSPI.h"
 
-// HX711 class
-HX711::HX711(byte dout, byte pd_sck, byte gain, float scale)
+HX711::HX711(uint8_t dout, uint8_t pd_sck, uint8_t gain, float scale)
 {
   DOUT = dout;
   PD_SCK = pd_sck;
@@ -20,7 +21,7 @@ void HX711::init()
   pinMode(DOUT, INPUT);
 }
 
-void HX711::setGain(byte gain)
+void HX711::setGain(uint8_t gain)
 {
   if (gain >= 25 && gain <= 27)
     Gain = gain;
@@ -44,12 +45,7 @@ float HX711::getWeight()
 /**
  * @brief     Get data from HX711 and set up PD_SCK = HIGH after
  */
-int32_t HX711::getData()
-{
-  return getData_H(Gain);
-}
-
-int32_t HX711::getData_H(byte gain, uint16_t check_freq)
+int32_t HX711::readDataHigh(byte gain, uint16_t check_freq)
 {
   const byte response_time = 1;
   digitalWrite(PD_SCK, LOW);
@@ -59,7 +55,7 @@ int32_t HX711::getData_H(byte gain, uint16_t check_freq)
     delayMicroseconds(check_freq);
 
   int32_t data = 0;
-  for (byte i = 0; i < 24; i++)
+  for (uint8_t i = 0; i < 24; i++)
   {
     digitalWrite(PD_SCK, HIGH);
     delayMicroseconds(response_time);
@@ -100,7 +96,7 @@ int32_t HX711::getData_L(byte gain, uint16_t check_freq)
     delayMicroseconds(check_freq);
 
   int32_t data = 0;
-  for (byte i = 0; i < 24; i++)
+  for (uint8_t i = 0; i < 24; i++)
   {
     digitalWrite(PD_SCK, HIGH);
     delayMicroseconds(response_time);
@@ -133,50 +129,4 @@ int32_t HX711::getData_L(byte gain, uint16_t check_freq)
     data |= 0xFF000000;
 
   return data;
-}
-//_____________________________________________________________________________________________________________________
-// HX711x4_Async class
-HX711x4_Async::HX711x4_Async()
-{
-}
-
-HX711x4_Async::HX711x4_Async(byte dout1, byte pd_sck1, byte dout2, byte pd_sck2, byte dout3, byte pd_sck3, byte dout4, byte pd_sck4, byte gain, float scale)
-{
-  hx711[0] = HX711(dout1, pd_sck1, gain, scale);
-  hx711[1] = HX711(dout2, pd_sck2, gain, scale);
-  hx711[2] = HX711(dout3, pd_sck3, gain, scale);
-  hx711[3] = HX711(dout4, pd_sck4, gain, scale);
-}
-
-HX711x4_Async::init(byte adc_4, byte dout, byte pd_sck, byte gain, float scale)
-{
-  switch (adc_4)
-  {
-  case 1:
-    hx711[0] = HX711(dout, pd_sck, gain, scale);
-    break;
-  case 2:
-    hx711[1] = HX711(dout, pd_sck, gain, scale);
-    break;
-  case 3:
-    hx711[2] = HX711(dout, pd_sck, gain, scale);
-    break;
-  case 4:
-    hx711[3] = HX711(dout, pd_sck, gain, scale);
-    break;
-  }
-}
-
-void HX711x4_Async::init()
-{
-  for (byte i = 0; i < 4; i++)
-    hx711[i].init();
-}
-
-void HX711x4_Async::setGain(byte gain)
-{
-  if (gain < 25 && gain > 27)
-    return;
-  for (byte i = 0; i < 4; i++)
-    hx711[i].setGain(gain);
 }

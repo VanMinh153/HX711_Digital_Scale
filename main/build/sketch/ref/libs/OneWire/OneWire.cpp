@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\OneWire\\OneWire.cpp"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\OneWire\\OneWire.cpp"
 /*
 Copyright (c) 2007, Jim Studt  (original old version - many contributors since)
 

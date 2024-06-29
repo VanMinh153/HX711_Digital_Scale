@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\release\\version_1.1_feature\\ref\\HX711-HEDSPI.h"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\release\\version_1.1_feature\\ref\\HX711-HEDSPI.h"
 /**
  * @brief       Library for HX711
  * @author     Nguyen Van Minh - SOICT-HUST
@@ -25,7 +25,7 @@ public:
   void setScale(float Scale);
   void setZero(int32_t Zero);
   int32_t setZero();
-  int32_t getData_H(byte Gain = GAIN_128, uint16_t check_freq = 100);
+  int32_t readDataHigh(byte Gain = GAIN_128, uint16_t check_freq = 100);
   int32_t getData_L(byte Gain = GAIN_128, uint16_t check_freq = 100);
   float getWeight();
 

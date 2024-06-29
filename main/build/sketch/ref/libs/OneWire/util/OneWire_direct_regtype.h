@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\OneWire\\util\\OneWire_direct_regtype.h"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\OneWire\\util\\OneWire_direct_regtype.h"
 #ifndef OneWire_Direct_RegType_h
 #define OneWire_Direct_RegType_h
 

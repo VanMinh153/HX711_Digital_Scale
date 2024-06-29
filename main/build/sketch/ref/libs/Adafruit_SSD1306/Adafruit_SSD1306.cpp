@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\Adafruit_SSD1306\\Adafruit_SSD1306.cpp"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\Adafruit_SSD1306\\Adafruit_SSD1306.cpp"
 /*!
  * @file Adafruit_SSD1306.cpp
  *

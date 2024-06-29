@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\HX711_SOLDERED\\src\\libs\\Generic-easyC\\easyC.h"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\HX711_SOLDERED\\src\\libs\\Generic-easyC\\easyC.h"
 /**
  **************************************************
  *

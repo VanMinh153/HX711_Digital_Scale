@@ -1,4 +1,4 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1 Scale\\main\\ref\\libs\\OneWire\\util\\OneWire_direct_gpio.h"
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\libs\\OneWire\\util\\OneWire_direct_gpio.h"
 #ifndef OneWire_Direct_GPIO_h
 #define OneWire_Direct_GPIO_h
 
