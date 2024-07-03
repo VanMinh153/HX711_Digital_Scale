@@ -4,83 +4,126 @@
   "editor": "wokwi",
   "parts": [
     {
-      "type": "board-esp32-c3-devkitm-1",
+      "type": "board-esp32-devkit-c-v4",
       "id": "esp",
-      "top": -38.7,
-      "left": -339.78,
+      "top": -1.14,
+      "left": -550.3,
+      "rotate": -90,
       "attrs": {}
     },
     {
       "type": "wokwi-lcd1602",
       "id": "lcd1",
-      "top": -176,
-      "left": -340,
+      "top": 54.4,
+      "left": -186.4,
       "attrs": { "pins": "i2c" }
     },
     {
-      "type": "wokwi-hx711",
-      "id": "cell1",
-      "top": -26.2,
-      "left": -199,
-      "attrs": { "type": "50kg" }
-    },
-    {
       "type": "wokwi-pushbutton",
-      "id": "btn1",
-      "top": 207,
-      "left": -470,
+      "id": "btnUp",
+      "top": 199,
+      "left": -726.8,
       "attrs": { "color": "grey", "label": "UP" }
     },
     {
       "type": "wokwi-pushbutton",
-      "id": "btn2",
-      "top": 207,
-      "left": -370,
+      "id": "btnDown",
+      "top": 198.2,
+      "left": -626.4,
       "attrs": { "color": "grey", "label": "DOWN" }
     },
     {
       "type": "wokwi-pushbutton",
-      "id": "btn3",
-      "top": 207,
-      "left": -270,
+      "id": "btnMode",
+      "top": 198.2,
+      "left": -526.4,
       "attrs": { "color": "green", "label": "MODE" }
     },
     {
       "type": "wokwi-pushbutton",
-      "id": "btn4",
-      "top": 207,
-      "left": -170,
-      "attrs": { "color": "blue", "label": "TAREE" }
+      "id": "btnTare",
+      "top": 198.2,
+      "left": -426.4,
+      "attrs": { "color": "blue", "label": "TARE" }
     },
     {
       "type": "wokwi-pushbutton",
-      "id": "btn6",
-      "top": 207,
-      "left": -70,
+      "id": "btnRecord",
+      "top": 198.2,
+      "left": -326.4,
       "attrs": { "color": "green", "label": "RECORD" }
-    }
+    },
+    {
+      "type": "wokwi-hx711",
+      "id": "cell1",
+      "top": -203.2,
+      "left": -294.2,
+      "rotate": -90,
+      "attrs": { "type": "50kg" }
+    },
+    {
+      "type": "wokwi-hx711",
+      "id": "cell2",
+      "top": -203.2,
+      "left": -464.2,
+      "rotate": -90,
+      "attrs": { "type": "50kg" }
+    },
+    {
+      "type": "wokwi-hx711",
+      "id": "cell3",
+      "top": -203.2,
+      "left": -634.2,
+      "rotate": -90,
+      "attrs": { "type": "50kg" }
+    },
+    {
+      "type": "wokwi-hx711",
+      "id": "cell4",
+      "top": -203.2,
+      "left": -804.2,
+      "rotate": -90,
+      "attrs": { "type": "50kg" }
+    },
+    { "type": "wokwi-vcc", "id": "vcc_adc", "top": -37.64, "left": -873.6, "attrs": {} },
+    { "type": "wokwi-gnd", "id": "gnd_adc", "top": 48, "left": -874.2, "attrs": {} },
+    { "type": "wokwi-gnd", "id": "gnd_btn", "top": 240.8, "left": -794.6, "attrs": {} },
+    { "type": "wokwi-vcc", "id": "vcc_lcd", "top": 58.36, "left": -220.8, "attrs": {} },
+    { "type": "wokwi-gnd", "id": "gnd_lcd", "top": 115.2, "left": -221.4, "attrs": {} }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "lcd1:GND", "esp:GND.1", "black", [ "h-9.6", "v124.8" ] ],
-    [ "lcd1:VCC", "esp:3V3.1", "red", [ "h-9.6", "v124.9" ] ],
-    [ "lcd1:SCL", "esp:3", "green", [ "h-9.6", "v134.7" ] ],
-    [ "lcd1:SDA", "esp:2", "green", [ "h-9.6", "v134.6" ] ],
-    [ "cell1:GND", "esp:GND.10", "black", [ "h-9.6", "v-19.5" ] ],
-    [ "cell1:VCC", "esp:5V.2", "#8f4814", [ "h-9.6", "v96", "h-144", "v-19.2" ] ],
-    [ "cell1:DT", "esp:6", "green", [ "h-9.6", "v47.5" ] ],
-    [ "cell1:SCK", "esp:7", "green", [ "h-9.6", "v28" ] ],
-    [ "esp:GND.5", "btn1:2.l", "black", [ "v9.6", "h-153.6", "v114.2" ] ],
-    [ "btn1:2.r", "btn2:2.l", "green", [ "h0" ] ],
-    [ "btn2:2.r", "btn3:2.l", "green", [ "h0" ] ],
-    [ "btn3:2.r", "btn4:2.l", "green", [ "h0" ] ],
-    [ "btn1:1.r", "esp:9", "green", [ "v-85.6", "h163", "v-115.2" ] ],
-    [ "btn2:1.r", "esp:8", "green", [ "v-85.6", "h63", "v-105.6" ] ],
-    [ "btn3:1.r", "esp:5", "green", [ "v-86.4", "h-37", "v-67.2" ] ],
-    [ "btn4:1.r", "esp:4", "green", [ "v-86.4", "h-137", "v-57.6" ] ],
-    [ "btn4:2.r", "btn6:2.l", "green", [ "h0" ] ],
-    [ "btn6:1.r", "esp:18", "green", [ "v-85.6", "h-237", "v-38.4" ] ]
+    [ "vcc_adc:VCC", "cell1:VCC", "red", [ "v19.2", "h652.8" ] ],
+    [ "vcc_adc:VCC", "cell2:VCC", "red", [ "v19.2", "h480" ] ],
+    [ "vcc_adc:VCC", "cell3:VCC", "red", [ "v19.2", "h316.8" ] ],
+    [ "vcc_adc:VCC", "cell4:VCC", "red", [ "v19.2", "h144" ] ],
+    [ "gnd_adc:GND", "cell1:GND", "black", [ "v-28.8", "h624" ] ],
+    [ "gnd_adc:GND", "cell2:GND", "black", [ "v-28.8", "h451.2" ] ],
+    [ "gnd_adc:GND", "cell3:GND", "black", [ "v-28.8", "h278.4" ] ],
+    [ "gnd_adc:GND", "cell4:GND", "black", [ "v-28.8", "h115.2" ] ],
+    [ "gnd_btn:GND", "btnUp:2.l", "black", [ "v0" ] ],
+    [ "btnUp:2.r", "btnDown:2.l", "black", [ "h0" ] ],
+    [ "btnDown:2.r", "btnMode:2.l", "black", [ "h0" ] ],
+    [ "btnMode:2.r", "btnTare:2.l", "black", [ "h0" ] ],
+    [ "btnTare:2.r", "btnRecord:2.l", "black", [ "h0" ] ],
+    [ "esp:12", "btnRecord:1.r", "green", [ "v9.45", "h201.6" ] ],
+    [ "esp:13", "btnTare:1.r", "green", [ "v9.45", "h86.4" ] ],
+    [ "esp:14", "btnMode:1.r", "green", [ "v9.45", "h9.6" ] ],
+    [ "esp:25", "btnDown:1.r", "green", [ "v9.45", "h-57.6" ] ],
+    [ "esp:26", "btnUp:1.r", "green", [ "v9.45", "h-163.2" ] ],
+    [ "esp:0", "cell1:DT", "green", [ "v-9.6", "h220.8" ] ],
+    [ "esp:17", "cell2:DT", "green", [ "v-9.6", "h76.8" ] ],
+    [ "esp:18", "cell3:DT", "green", [ "v-9.6", "h-67.2" ] ],
+    [ "esp:23", "cell4:DT", "green", [ "v-9.6", "h-172.8" ] ],
+    [ "esp:21", "lcd1:SDA", "green", [ "v-9.6", "h336", "v48" ] ],
+    [ "esp:22", "lcd1:SCL", "green", [ "v-9.6", "h364.8", "v57.6" ] ],
+    [ "vcc_lcd:VCC", "lcd1:VCC", "red", [ "v48" ] ],
+    [ "gnd_lcd:GND", "lcd1:GND", "black", [ "v0" ] ],
+    [ "esp:2", "cell1:SCK", "green", [ "v-9.6", "h230.4" ] ],
+    [ "esp:2", "cell2:SCK", "green", [ "v-9.6", "h57.6" ] ],
+    [ "esp:2", "cell3:SCK", "green", [ "v-9.6", "h-115.2" ] ],
+    [ "esp:2", "cell4:SCK", "green", [ "v-9.6", "h-288" ] ]
   ],
   "dependencies": {}
 }

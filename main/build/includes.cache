@@ -1,0 +1,117 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32_2.0.17\\hardware\\esp32\\2.0.17\\cores\\esp32"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32_2.0.17\\hardware\\esp32\\2.0.17\\variants\\esp32"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "LiquidCrystal_I2C.h",
+    "Includepath": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\LiquidCrystal_I2C"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "Wire.h",
+    "Includepath": "C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32_2.0.17\\hardware\\esp32\\2.0.17\\libraries\\Wire\\src"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "Adafruit_SSD1306.h",
+    "Includepath": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_SSD1306"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "Adafruit_GFX.h",
+    "Includepath": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "Adafruit_I2CDevice.h",
+    "Includepath": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_BusIO"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "SPI.h",
+    "Includepath": "C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32_2.0.17\\hardware\\esp32\\2.0.17\\libraries\\SPI\\src"
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\main.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\SOICT_HX711.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\screen.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\build\\sketch\\utility.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32_2.0.17\\hardware\\esp32\\2.0.17\\libraries\\Wire\\src\\Wire.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_SSD1306\\Adafruit_SSD1306.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GFX.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GrayOLED.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_SPITFT.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\glcdfont.c",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Moderator\\AppData\\Local\\Arduino15\\packages\\esp32_2.0.17\\hardware\\esp32\\2.0.17\\libraries\\SPI\\src\\SPI.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]

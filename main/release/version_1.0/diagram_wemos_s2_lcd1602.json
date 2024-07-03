@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "author": "Minh Nguyễn",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-wemos-s2-mini",
+      "id": "esp1",
+      "top": -13.74,
+      "left": -344.8,
+      "rotate": 180,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -176,
+      "left": -340,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "wokwi-hx711",
+      "id": "cell1",
+      "top": -26.2,
+      "left": -199,
+      "attrs": { "type": "50kg" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 207,
+      "left": -470,
+      "attrs": { "color": "grey", "label": "UP" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn2",
+      "top": 207,
+      "left": -370,
+      "attrs": { "color": "grey", "label": "DOWN" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn3",
+      "top": 207,
+      "left": -270,
+      "attrs": { "color": "green", "label": "MODE" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn4",
+      "top": 207,
+      "left": -170,
+      "attrs": { "color": "blue", "label": "TAREE" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn6",
+      "top": 207,
+      "left": -70,
+      "attrs": { "color": "green", "label": "RECORD" }
+    }
+  ],
+  "connections": [
+    [ "lcd1:GND", "esp1:GND.2", "black", [ "h-9.6", "v172.8" ] ],
+    [ "cell1:VCC", "esp1:VBUS", "red", [ "h-9.6", "v-48", "h-144", "v38.4" ] ],
+    [ "lcd1:VCC", "esp1:3V3", "red", [ "h-9.6", "v115.3", "h96" ] ],
+    [ "lcd1:SDA", "esp1:33(SDA)", "green", [ "h-9.6", "v182.6" ] ],
+    [ "lcd1:SCL", "esp1:35(SCL)", "green", [ "h-9.6", "v182.7" ] ],
+    [ "cell1:DT", "esp1:6", "green", [ "h-9.6", "v47.5" ] ],
+    [ "cell1:SCK", "esp1:7(SCK)", "green", [ "h-9.6", "v37.6" ] ],
+    [ "cell1:GND", "esp1:GND.1", "black", [ "h-9.6", "v-19.5", "h-144", "v48" ] ],
+    [ "esp1:GND.2", "btn1:2.l", "black", [ "v0", "h-9.45", "v96", "h-144", "v115.2" ] ],
+    [ "btn1:2.r", "btn2:2.l", "green", [ "h0" ] ],
+    [ "btn2:2.r", "btn3:2.l", "green", [ "h0" ] ],
+    [ "btn3:2.r", "btn4:2.l", "green", [ "h0" ] ],
+    [ "btn4:2.r", "btn6:2.l", "green", [ "h0" ] ],
+    [ "btn1:1.r", "esp1:9(MISO)", "green", [ "v-85.6", "h163", "v-86.4" ] ],
+    [ "btn2:1.r", "esp1:8", "green", [ "v-85.6", "h63", "v-86.4" ] ],
+    [ "btn3:1.r", "esp1:5", "green", [ "v-85.6", "h-37", "v-67.2" ] ],
+    [ "btn4:1.r", "esp1:4", "green", [ "v-85.6", "h-137", "v-67.2" ] ],
+    [ "btn6:1.r", "esp1:10", "green", [ "v-85.6", "h-237", "v-105.6" ] ]
+  ],
+  "dependencies": {}
+}

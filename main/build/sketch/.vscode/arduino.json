@@ -1,0 +1,9 @@
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\.vscode\\arduino.json"
+{
+    "sketch": "main.ino",
+    "output": "build",
+    "board": "esp32_2.0.17:esp32:esp32",
+    "configuration": "JTAGAdapter=default,PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=none,EraseFlash=none",
+    "programmer": "esptool",
+    "port": "COM10"
+}
