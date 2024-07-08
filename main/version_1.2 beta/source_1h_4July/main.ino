@@ -3,7 +3,6 @@
 #include "config.h"
 #include "utility.h"
 #include "screen.h"
-#include <pins_arduino.h>
 
 #if defined(HW_HX711)
 HX711 sensor(DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);

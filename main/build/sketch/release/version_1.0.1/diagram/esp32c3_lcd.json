@@ -1,0 +1,87 @@
+#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\release\\version_1.0.1\\diagram\\esp32c3_lcd.json"
+{
+  "version": 1,
+  "author": "Minh Nguyễn",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-c3-devkitm-1",
+      "id": "esp",
+      "top": -38.7,
+      "left": -339.78,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -176,
+      "left": -340,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "wokwi-hx711",
+      "id": "cell",
+      "top": -26.2,
+      "left": -199,
+      "attrs": { "type": "50kg" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnUp",
+      "top": 207,
+      "left": -470,
+      "attrs": { "color": "grey", "label": "UP" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnDown",
+      "top": 207,
+      "left": -370,
+      "attrs": { "color": "grey", "label": "DOWN" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnMode",
+      "top": 207,
+      "left": -270,
+      "attrs": { "color": "green", "label": "MODE" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnTare",
+      "top": 207,
+      "left": -170,
+      "attrs": { "color": "blue", "label": "TARE" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btnRecord",
+      "top": 207,
+      "left": -70,
+      "attrs": { "color": "green", "label": "RECORD" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "lcd:GND", "esp:GND.1", "black", [ "h-9.6", "v124.8" ] ],
+    [ "lcd:VCC", "esp:3V3.1", "red", [ "h-9.6", "v124.9" ] ],
+    [ "lcd:SCL", "esp:3", "green", [ "h-9.6", "v134.7" ] ],
+    [ "lcd:SDA", "esp:2", "green", [ "h-9.6", "v134.6" ] ],
+    [ "cell:GND", "esp:GND.10", "black", [ "h-9.6", "v-19.5" ] ],
+    [ "cell:VCC", "esp:5V.2", "#8f4814", [ "h-9.6", "v96", "h-144", "v-19.2" ] ],
+    [ "cell:DT", "esp:6", "green", [ "h-9.6", "v47.5" ] ],
+    [ "cell:SCK", "esp:7", "green", [ "h-9.6", "v28" ] ],
+    [ "esp:GND.5", "btnUp:2.l", "black", [ "v9.6", "h-153.6", "v114.2" ] ],
+    [ "btnUp:2.r", "btnDown:2.l", "green", [ "h0" ] ],
+    [ "btnDown:2.r", "btnMode:2.l", "green", [ "h0" ] ],
+    [ "btnMode:2.r", "btnTare:2.l", "green", [ "h0" ] ],
+    [ "btnUp:1.r", "esp:9", "green", [ "v-85.6", "h163", "v-115.2" ] ],
+    [ "btnDown:1.r", "esp:8", "green", [ "v-85.6", "h63", "v-105.6" ] ],
+    [ "btnMode:1.r", "esp:5", "green", [ "v-86.4", "h-37", "v-67.2" ] ],
+    [ "btnTare:1.r", "esp:4", "green", [ "v-86.4", "h-137", "v-57.6" ] ],
+    [ "btnTare:2.r", "btnRecord:2.l", "green", [ "h0" ] ],
+    [ "btnRecord:1.r", "esp:18", "green", [ "v-85.6", "h-237", "v-38.4" ] ]
+  ],
+  "dependencies": {}
+}
