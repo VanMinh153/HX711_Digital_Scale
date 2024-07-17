@@ -105,6 +105,7 @@ void HX711::setPowerDown(bool powerDown_val)
 void HX711::setGain(hx711_gain_t gain_val)
 {
   gain = gain_val;
+  setting_gain = gain;
   readData(gain);
 }
 
@@ -156,7 +157,7 @@ int HX711::readData(hx711_gain_t gain_val)
 {
   if (_powerDown == 1)
     powerUp();
-  
+
   int data;
   if (gain_val == setting_gain)
     data = HX711Mini::readData(gain_val);
@@ -168,9 +169,9 @@ int HX711::readData(hx711_gain_t gain_val)
   }
 
 #if defined(DEBUG_MODE)
-  // FIXBUG
-  if (data == HX711_FAIL)
-    Serial.print("`READ_FAIL`; ");
+  // Serial.print("`DATA`= " + String(data) + " | ");
+  // if (data == HX711_FAIL)
+  //   Serial.print("`READ_FAIL`; ");
 #endif
 
   if (_powerDown == 1)
@@ -385,85 +386,85 @@ int HX711List::readDataAsync(hx711_gain_t gain_val)
     if (data_temp == HX711_FAIL)
     {
       errRead++;
-      Serial.print("`FAIL" + String(i + 1) + "`; ");
+      Serial.print("`FAIL`" + String(i + 1) + " | ");
     }
     else
     {
       data += data_temp;
-      Serial.print("`READ" + String(i + 1) + "`= " + String(data_temp / 420) + "; ");
+      Serial.print("`READ`" + String(i + 1) + " = " + String(data_temp / 420) + " | ");
     }
   }
 
   if (_powerDown == 1)
     powerDown();
 
-  Serial.print("`DATA`=" + String(data / 420) + " : \r\n");
+  Serial.print("`DATA`=" + String(data / 420) + "; \r\n");
 
   return data;
-  // }
+}
 
-  int HX711List::readDataSync(hx711_gain_t gain_val)
-  {
-    Serial.println();
-    const uint8_t max_wait = 105; // max wait time (105ms)
-    unsigned long timer = millis();
-    errRead = 0;
-    while (isReady() == false && millis() - timer < max_wait)
-      delay(1);
+int HX711List::readDataSync(hx711_gain_t gain_val)
+{
+  Serial.println();
+  const uint8_t max_wait = 105; // max wait time (105ms)
+  unsigned long timer = millis();
+  errRead = 0;
+  while (isReady() == false && millis() - timer < max_wait)
+    delay(1);
 
-    // time wait after ready signal: min 0.1us
+  // time wait after ready signal: min 0.1us
+  delayMicroseconds(1);
+  if (isReady() == false)
+    return HX711_FAIL;
+
+  int data[Size] = {0};
+  int data_sum = 0;
+  for (int i = 0; i < 24; i++)
+  { // response time: max 0.1us
+    // clock pin high time: min 0.2us, typ 1us, max 50us
+    // clock pin low time: min 0.2us, typ 1us
+    digitalWrite(clockPin, HIGH);
     delayMicroseconds(1);
-    if (isReady() == false)
-      return HX711_FAIL;
-
-    int data[Size] = {0};
-    int data_sum = 0;
-    for (int i = 0; i < 24; i++)
-    { // response time: max 0.1us
-      // clock pin high time: min 0.2us, typ 1us, max 50us
-      // clock pin low time: min 0.2us, typ 1us
-      digitalWrite(clockPin, HIGH);
-      delayMicroseconds(1);
-      for (int j = 0; j < Size; j++)
-      {
-        data[j] = (data[j] << 1) | digitalRead(hx711[j].dataPin);
-      }
-      digitalWrite(clockPin, LOW);
-      delayMicroseconds(1);
-    }
-
-    for (int i = 0; i < gain_val - 24; i++)
+    for (int j = 0; j < Size; j++)
     {
-      digitalWrite(clockPin, HIGH);
-      delayMicroseconds(1);
-      digitalWrite(clockPin, LOW);
-      delayMicroseconds(1);
+      data[j] = (data[j] << 1) | digitalRead(hx711[j].dataPin);
     }
-    // data pin will be HIGH after read process
-    for (int i = 0; i < Size; i++)
-      if (digitalRead(hx711[i].dataPin) == LOW)
-        data[i] = HX711_FAIL;
-
-    // Overflow and Underflow
-    for (int i = 0; i < Size; i++)
-    {
-      if (data[i] == 0x7FFFFF || data[i] == 0x800000 || data[i] == HX711_FAIL || data[i] > DataUnitMax)
-      {
-        errRead++;
-        Serial.print("`FAIL" + String(i + 1) + "`: ");
-      }
-      else
-      {
-        if ((data[i] & BIT23) > 0)
-          data[i] |= 0xFF000000;
-        data_sum += data[i];
-        Serial.print("`READ" + String(i + 1) + "`= " + String(data[i] / 420) + "; ");
-      }
-    }
-
-    Serial.print("`DATA`= " + String(data / 420) + "; \r\n");
-
-    // data_sum = data_sum / (Size - errRead) * Size;
-    return data_sum;
+    digitalWrite(clockPin, LOW);
+    delayMicroseconds(1);
   }
+
+  for (int i = 0; i < gain_val - 24; i++)
+  {
+    digitalWrite(clockPin, HIGH);
+    delayMicroseconds(1);
+    digitalWrite(clockPin, LOW);
+    delayMicroseconds(1);
+  }
+  // data pin will be HIGH after read process
+  for (int i = 0; i < Size; i++)
+    if (digitalRead(hx711[i].dataPin) == LOW)
+      data[i] = HX711_FAIL;
+
+  // Overflow and Underflow
+  for (int i = 0; i < Size; i++)
+  {
+    if (data[i] == 0x7FFFFF || data[i] == 0x800000 || data[i] == HX711_FAIL || data[i] > DataUnitMax)
+    {
+      errRead++;
+      Serial.print("`FAIL`" + String(i + 1) + " | ");
+    }
+    else
+    {
+      if ((data[i] & BIT23) > 0)
+        data[i] |= 0xFF000000;
+      data_sum += data[i];
+      Serial.print("`READ`" + String(i + 1) + " = " + String(data[i] / 420) + " | ");
+    }
+  }
+
+  Serial.print("`DATA`= " + String(data_sum / 420) + "; \r\n");
+
+  // data_sum = data_sum / (Size - errRead) * Size;
+  return data_sum;
+}
 #endif

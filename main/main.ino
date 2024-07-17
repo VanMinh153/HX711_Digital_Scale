@@ -1,9 +1,9 @@
-#include "SOICT_HX711.h"
-// #include "main.h"
+
 #include "config.h"
-#include "utility.h"
 #include "screen.h"
-#include <pins_arduino.h>
+#include "SOICT_HX711.h"
+#include "main.h"
+#include "utility.h"
 
 #if defined(HW_HX711)
 HX711 sensor(DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
@@ -11,16 +11,26 @@ HX711 sensor(DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
 HX711List sensor(4, DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
 #endif
 
-#if defined(HW_LCD)
+#if defined(HW_LCD) && defined(HW_OLED)
+TEST_Screen screen;
+#elif defined(HW_LCD)
 LCD_I2C screen(LCD_I2C_ADDRESS, 16, 2);
 #elif defined(HW_OLED)
 OLED_SSD1306 screen(128, 64);
 #endif
 
+#if defined(HW_DHT)
+DHT dht(PIN_DHT, DHT11);
+#endif
+
+#if defined(HW_RFID)
+MFRC522 rfid(PIN_SS, PIN_RST);
+#endif
+
 // hx711_gain_t Gain = CHAN_A_GAIN_128;
 int Tare = 0;
 float Scale = SCALE;
-uint8_t Mode = KG_MODE;
+uint8_t Mode = MODE_VN;
 uint16_t Absolute_error = (uint16_t)(Scale * ABSOLUTE_ERROR);
 // //-------------------------------------------------------
 volatile uint8_t tare = 0;
@@ -38,18 +48,24 @@ float _weight = 0;
 float record_weight[RECORD_NUM];
 uint8_t record_weight_idx = 0;
 
-unsigned long timer = millis();
+String record_id[RECORD_NUM];
+unsigned long rfid_timer = millis();
+String _id = "";
+String prev_id = "";
+
+unsigned long sleep_timer = millis();
 // int prev_readData_val = 0;
 // uint32_t sensor_error = 0;
 uint8_t sleep_flag = 0;
-uint8_t wake_up_flag = 0;
+uint8_t detect_new_weight_flag = 0; 
 uint8_t interrupt_flag = 0;
+String title = MAIN_TITLE;
 
 //----------------------------------------------------------------------------------------------------------------------
 void setup()
 {
-  Serial.begin(57600);
-
+  Serial.begin(115200);
+  Serial.println("Welcome to Digital Scale!");
   pinMode(TARE, INPUT_PULLUP);
   pinMode(MODE, INPUT_PULLUP);
   pinMode(UP, INPUT_PULLUP);
@@ -61,12 +77,33 @@ void setup()
   attachInterrupt(DOWN, downISR, RISING);
   attachInterrupt(RECORD, recordISR, RISING);
 
+
+#if defined(HW_NTC)
+  analogReadResolution(10);
+  pinMode(PIN_NTC, INPUT);
+#endif
+
+#if defined(HW_LM35)
+  analogReadResolution(10);
+  pinMode(PIN_LM35, INPUT);
+#endif
+
+#if defined(HW_DHT)
+  dht.begin();
+#endif
+
+#if defined(HW_RFID)
+  SPI.begin();
+  rfid.PCD_Init();
+#endif
+
   Wire.begin(SDA, SCL);
   sensor.begin();
-  sensor.readData();
   screen.begin();
   delay(1000);
 
+  sensor.readData();
+  Tare = sensor.readData();
   screen.printTitle(MAIN_TITLE);
   screen.printContent("SOICT-K66");
   delay(2000);
@@ -84,33 +121,52 @@ void loop()
   _data = getData_();
   _weight = toWeight(_data);
 
+  title = MAIN_TITLE;
+  
+#if defined(HW_RFID)
+  _id = readRFID();
+  if (_id == "" && prev_id != "" && millis() - rfid_timer < DELAY_RFID_TIME )
+      _id = prev_id;
+  else
+  {
+    prev_id = _id;
+    rfid_timer = millis();
+  }
+
+  if (_id != "")
+    title = _id;
+  else
+    title = MAIN_TITLE;
+#endif
+
 #if defined(HW_LCD)
   if (sleep_flag == 1 || interrupt_flag == 1)
-    screen.printTitle(MAIN_TITLE);
+    screen.printTitle(title);
 
-  if (_data != prev_data)
+  if (abs(_data - prev_data) > Absolute_error)
     screen.printWeight(_weight);
 #endif
 
 #if defined(HW_OLED)
-  if (_data != prev_data)
+  if (abs(_data - prev_data) > Absolute_error)
   {
-    screen.printTitle(MAIN_TITLE);
+    screen.printTitle(title);
     screen.printWeight(_weight);
   }
 #endif
+  
+  if (sleep_flag == 1)
+    prev_data = 0;
 
   sleep_flag = 0;
   interrupt_flag = 0;
+  detect_new_weight_flag = 0;
 
   // feature: Auto turn off the screen backlight
-  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
-  if (wake_up_flag == 1)
-    wake_up_flag = 0;
-
+  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in AUTO_SLEEP_TIME seconds
   if (abs(_data - prev_data) < 2 * Absolute_error)
   {
-    while (millis() - timer > AUTO_SLEEP_TIME)
+    while (millis() - sleep_timer > AUTO_SLEEP_TIME)
     {
       if (_data == 0)
       {
@@ -139,14 +195,15 @@ void loop()
     }
   }
   else
-    timer = millis();
+    sleep_timer = millis();
 
   // feature: Save the results of the last RECORD_NUM weightings
-  if (millis() - timer > RECORD_TIME && abs(_weight - record_weight[record_weight_idx]) > ABSOLUTE_ERROR && abs(_weight) > ABSOLUTE_ERROR)
+  if (millis() - sleep_timer > RECORD_TIME && abs(_weight - record_weight[record_weight_idx]) > ABSOLUTE_ERROR && abs(_weight) > ABSOLUTE_ERROR)
   {
     record_weight_idx++;
     if (record_weight_idx == RECORD_NUM)
       record_weight_idx = 0;
+    record_id[record_weight_idx] = _id;
     record_weight[record_weight_idx] = _weight;
     Serial.println("Record: " + String(_weight));
   }
@@ -184,7 +241,7 @@ void loop()
     {
       mode = 0;
       screen.printTitle("Digital Scale");
-      Mode = (Mode == KG_MODE) ? LB_MODE : KG_MODE;
+      Mode = (Mode == MODE_VN) ? MODE_US : MODE_VN;
       screen.printWeight(_weight);
     }
     //
@@ -221,9 +278,6 @@ void loop()
     }
 
     // feature: View the results of the last weightings
-    if (_record == 1)
-      screen.printTitle("Record Weight:  ");
-
     uint8_t k = 0;
     while (_record == 1 && record == 1)
     {
@@ -234,8 +288,13 @@ void loop()
         k = 0;
         break;
       }
-
-      screen.printWeight(record_weight[(record_weight_idx - k + RECORD_NUM + 1) % RECORD_NUM]);
+      int idx = (record_weight_idx - k + RECORD_NUM + 1) % RECORD_NUM;
+      
+      if (record_id[idx] != "")
+        screen.printTitle(record_id[idx]);
+      else
+        screen.printTitle("Record Weight:  ");
+      screen.printWeight(record_weight[idx]);
       if (waitOnInterrupt(SHOW_RECORD_TIME, &record) == 1)
         prev_interrupt++;
     }

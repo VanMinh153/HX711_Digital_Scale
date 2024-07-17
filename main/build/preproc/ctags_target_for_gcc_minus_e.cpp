@@ -1,9 +1,10 @@
 # 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
-# 2 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 2
-// #include "main.h"
+
+# 3 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 2
 # 4 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 2
 # 5 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 2
 # 6 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 2
+# 7 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 2
 
 
 
@@ -12,11 +13,10 @@ HX711List sensor(4, DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
 
 
 
+
+
 LCD_I2C screen(0x27, 16, 2);
-
-
-
-
+# 30 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
 // hx711_gain_t Gain = CHAN_A_GAIN_128;
 int Tare = 0;
 float Scale = 420;
@@ -35,21 +35,27 @@ uint8_t prev_interrupt = 0;
 int _data = 0;
 float prev_data = 0;
 float _weight = 0;
-float record_weight[3];
+float record_weight[6];
 uint8_t record_weight_idx = 0;
 
-unsigned long timer = millis();
+String record_id[6];
+unsigned long rfid_timer = millis();
+String _id = "";
+String prev_id = "";
+
+unsigned long sleep_timer = millis();
 // int prev_readData_val = 0;
 // uint32_t sensor_error = 0;
 uint8_t sleep_flag = 0;
-uint8_t wake_up_flag = 0;
+uint8_t detect_new_weight_flag = 0;
 uint8_t interrupt_flag = 0;
+String title = "Digital Scale";
 
 //----------------------------------------------------------------------------------------------------------------------
 void setup()
 {
-  Serial.begin(57600);
-
+  Serial.begin(115200);
+  Serial.println("Welcome to Digital Scale!");
   pinMode(13, 0x05);
   pinMode(14, 0x05);
   pinMode(26, 0x05);
@@ -61,12 +67,18 @@ void setup()
   attachInterrupt(25, downISR, 0x01);
   attachInterrupt(12, recordISR, 0x01);
 
+
+
+  analogReadResolution(10);
+  pinMode(15, 0x01);
+# 100 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
   Wire.begin(21, 22);
   sensor.begin();
-  sensor.readData();
   screen.begin();
   delay(1000);
 
+  sensor.readData();
+  Tare = sensor.readData();
   screen.printTitle("Digital Scale");
   screen.printContent("SOICT-K66");
   delay(2000);
@@ -78,30 +90,32 @@ void setup()
 void loop()
 {
 
-  sensor.DataUnitMax = 55 * Scale;
+  sensor.DataUnitMax = 50 * Scale;
 
 
   _data = getData_();
   _weight = toWeight(_data);
 
-
+  title = "Digital Scale";
+# 143 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
   if (sleep_flag == 1 || interrupt_flag == 1)
-    screen.printTitle("Digital Scale");
+    screen.printTitle(title);
 
-  if (_data != prev_data)
+  if (abs(_data - prev_data) > Absolute_error)
     screen.printWeight(_weight);
-# 102 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
+# 158 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
+  if (sleep_flag == 1)
+    prev_data = 0;
+
   sleep_flag = 0;
   interrupt_flag = 0;
+  detect_new_weight_flag = 0;
 
   // feature: Auto turn off the screen backlight
-  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in 3s
-  if (wake_up_flag == 1)
-    wake_up_flag = 0;
-
+  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in AUTO_SLEEP_TIME seconds
   if (abs(_data - prev_data) < 2 * Absolute_error)
   {
-    while (millis() - timer > 3000)
+    while (millis() - sleep_timer > 12000)
     {
       if (_data == 0)
       {
@@ -130,14 +144,15 @@ void loop()
     }
   }
   else
-    timer = millis();
+    sleep_timer = millis();
 
   // feature: Save the results of the last RECORD_NUM weightings
-  if (millis() - timer > 600 && abs(_weight - record_weight[record_weight_idx]) > (0.1f * 4) && abs(_weight) > (0.1f * 4))
+  if (millis() - sleep_timer > 600 && abs(_weight - record_weight[record_weight_idx]) > (0.1f * 4) && abs(_weight) > (0.1f * 4))
   {
     record_weight_idx++;
-    if (record_weight_idx == 3)
+    if (record_weight_idx == 6)
       record_weight_idx = 0;
+    record_id[record_weight_idx] = _id;
     record_weight[record_weight_idx] = _weight;
     Serial.println("Record: " + String(_weight));
   }
@@ -212,21 +227,23 @@ void loop()
     }
 
     // feature: View the results of the last weightings
-    if (_record == 1)
-      screen.printTitle("Record Weight:  ");
-
     uint8_t k = 0;
     while (_record == 1 && record == 1)
     {
       record = 0;
       k++;
-      if (k == 3 + 1)
+      if (k == 6 + 1)
       {
         k = 0;
         break;
       }
+      int idx = (record_weight_idx - k + 6 + 1) % 6;
 
-      screen.printWeight(record_weight[(record_weight_idx - k + 3 + 1) % 3]);
+      if (record_id[idx] != "")
+        screen.printTitle(record_id[idx]);
+      else
+        screen.printTitle("Record Weight:  ");
+      screen.printWeight(record_weight[idx]);
       if (waitOnInterrupt(2500, &record) == 1)
         prev_interrupt++;
     }
@@ -236,9 +253,9 @@ void loop()
 
     if (_record == 1)
       
-# 246 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 3 4
+# 306 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino" 3 4
      __null
-# 246 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
+# 306 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\main.ino"
          ;
     else
     {

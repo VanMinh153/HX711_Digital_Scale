@@ -1,8 +1,8 @@
 C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\utility.cpp.o: \
  C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\utility.cpp \
- C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\config.h \
  C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\utility.h \
  C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\main.h \
+ C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\config.h \
  C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\screen.h \
  C:\Users\Moderator\Documents\Arduino\libraries\LiquidCrystal_I2C/LiquidCrystal_I2C.h \
  C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\cores\esp32/Print.h \

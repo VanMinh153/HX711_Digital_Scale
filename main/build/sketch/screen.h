@@ -2,13 +2,13 @@
 #ifndef screen_h
 #define screen_h
 
-// #include <sys/_stdint.h>
-#include <stdint.h>
 #include "config.h"
+#include <stdint.h>
 #include <LiquidCrystal_I2C.h>
 #include <Adafruit_SSD1306.h>
 
 extern uint8_t Mode;
+extern float readTemperature();
 
 class Screen
 {
@@ -18,8 +18,9 @@ public:
   virtual void noBacklight() = 0;
   virtual void backlight() = 0;
   virtual void printWeight(float w) = 0;
-  virtual void printTitle(char *title) = 0;
-  virtual void printContent(char *content) = 0;
+  virtual void printTemperature(float t) = 0;
+  virtual void printTitle(String title) = 0;
+  virtual void printContent(String content) = 0;
 };
 
 class LCD_I2C : public LiquidCrystal_I2C, public Screen
@@ -32,8 +33,9 @@ public:
   void backlight() override;
 
   void printWeight(float w) override;
-  void printTitle(char *title) override;
-  void printContent(char *content) override;
+  void printTemperature(float t) override;
+  void printTitle(String title) override;
+  void printContent(String content) override;
 };
 
 class OLED_SSD1306 : Adafruit_SSD1306, public Screen
@@ -46,9 +48,26 @@ public:
   void backlight() override;
 
   void printWeight(float w) override;
-  void printTitle(char *title) override;
-  void printContent(char *content) override;
-  // void printContent(char *content, uint8_t textSize);
+  void printTemperature(float t) override;
+  void printTitle(String title) override;
+  void printContent(String content) override;
+};
+
+class TEST_Screen : public Screen
+{
+public:
+  TEST_Screen();
+  LCD_I2C lcd;
+  OLED_SSD1306 oled;
+  void begin() override;
+  void clear() override;
+  void noBacklight() override;
+  void backlight() override;
+
+  void printWeight(float w) override;
+  void printTemperature(float t) override;
+  void printTitle(String title) override;
+  void printContent(String content) override;
 };
 
 

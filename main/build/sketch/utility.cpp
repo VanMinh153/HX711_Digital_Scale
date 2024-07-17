@@ -1,13 +1,57 @@
 #line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\utility.cpp"
-// #include "main.h"
-#include "config.h"
 #include "utility.h"
-#include "screen.h"
 
 hx711_gain_t Gain = CHAN_A_GAIN_128;
 int getData_Avg_return = 0;
 uint32_t sensor_error = 0;
 
+#if defined(HW_DHT)
+float readTemperature()
+{
+  float t = dht.readTemperature() + 24;
+  unsigned long timer = millis();
+  while (isnan(t) && millis() - timer < 5)
+    t = dht.readTemperature();
+  return t;
+}
+#elif defined(HW_NTC)
+float readTemperature()
+{
+  int data = analogRead(PIN_NTC);
+  float temp = 1 / (log(1 / (1023. / data - 1)) / BETA + 1 / 298.15) - 273.15;
+  return temp;
+}
+#elif defined(HW_LM35)
+float readTemperature()
+{
+  int data = analogRead(PIN_LM35);
+  float temp = data * (ADC_VREF / ADC_RESOLUTION) / 10;
+  return temp;
+}
+#endif
+
+#if defined(HW_RFID)
+String readRFID()
+{
+  String id = "";
+  if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial())
+  {
+    rfid_flag = 1;
+    for (byte i = 0; i < rfid.uid.size; i++)
+    {
+      id.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
+      id.concat(String(rfid.uid.uidByte[i], HEX));
+    }
+#if defined(DEBUG_MODE)
+    Serial.println("`RFID`= " + id);
+#endif
+  }
+  rfid.PICC_HaltA();
+
+  return id;
+}
+#endif
+//
 /**
  * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
  */
@@ -27,7 +71,7 @@ uint8_t sleep_(uint8_t sensitivity)
   else if (retval == 3)
     Serial.println(" > Awake: Detect Weight Changes from Zero");
   else if (retval == 4)
-    Serial.println(" > Awake: wake_up_flag have been set before!!!");
+    Serial.println(" > Awake: detect_new_weight_flag have been set before!!!");
 
   setGain(CHAN_A_GAIN_128);
   screen.backlight();
@@ -42,11 +86,11 @@ uint8_t sleep_(uint8_t sensitivity)
  * @param error       Default is absolute error of the scale
  * @return uint8_t    0: timeout, 1: weight changes, 2: interrupt signal
  *                    3: weight changes from zero
- *                    4: wake_up_flag have been set before!!!
+ *                    4: detect_new_weight_flag have been set before!!!
  */
 uint8_t waitForWeightChange(uint16_t timeout, uint16_t time2listen, uint16_t error)
 {
-  if (wake_up_flag == 1)
+  if (detect_new_weight_flag == 1)
     return 3;
 
   unsigned long t = millis();
@@ -77,7 +121,7 @@ uint8_t waitForWeightChange(uint16_t timeout, uint16_t time2listen, uint16_t err
     if (tare_flag == 1)
       if (abs(d - Tare) > 5 * error)
       {
-        wake_up_flag = 1;
+        detect_new_weight_flag = 1;
         break;
       }
       else
@@ -93,15 +137,15 @@ uint8_t waitForWeightChange(uint16_t timeout, uint16_t time2listen, uint16_t err
     {
       if (abs(d - getData_()) < 2 * error)
       {
-        wake_up_flag = 1;
+        detect_new_weight_flag = 1;
         break;
       }
     }
   }
 
-  if (wake_up_flag == 1)
+  if (detect_new_weight_flag == 1)
   {
-    timer = millis();
+    sleep_timer = millis();
     return tare_flag == 0 ? 1 : 3;
   }
   return (t == TIME_END) ? 0 : 2;
@@ -159,7 +203,7 @@ int getData_Avg(HX711 adc)
       continue;
     if (d_temp == getData_Avg_return)
       return getData_Avg_return;
-    if (abs(d_temp) < (int) (Scale * MAX_LOAD))
+    if (abs(d_temp - Tare) < (int)(Scale * MAX_LOAD))
     {
       d[count] = d_temp;
       d_avg += d_temp;
@@ -213,9 +257,9 @@ int getData_Avg(HX711List adc)
 
     // FIXBUG
     // if (adc.errRead != 0)
-    //   Serial.print("`ERR_READ`=" + String(adc.errRead) + " : ");
+    //   Serial.print("`ERR_READ`=" + String(adc.errRead) + " | ");
     // if (abs(d_temp) > (int) (Scale * MAX_LOAD))
-    //   Serial.print("`ERR_MAXLOAD`=" + String(abs(d_temp)) + " : ");
+    //   Serial.print("`ERR_MAXLOAD`=" + String(abs(d_temp)) + " | ");
 
     if (adc.errRead != 0)
       continue;
@@ -223,7 +267,7 @@ int getData_Avg(HX711List adc)
     if (d_temp == getData_Avg_return)
       return getData_Avg_return;
 
-    if (abs(d_temp) < (int) (Scale * MAX_LOAD))
+    if (abs(d_temp) < (int)(Scale * MAX_LOAD))
     {
       d[count] = d_temp;
       d_avg += d_temp;
@@ -280,7 +324,7 @@ int getData_(uint8_t allow_delay)
   if (d == GET_DATA_FAIL)
   {
     // FIXBUG
-    Serial.println("\r\ngetData_Avg()_Failed - " + String(getData_Avg_return) + " : ");
+    Serial.println("\r\ngetData_Avg()_Failed - " + String(getData_Avg_return) + " | ");
     // Serial.println("Error: Failed to get data from HX711");
     return _data;
   }

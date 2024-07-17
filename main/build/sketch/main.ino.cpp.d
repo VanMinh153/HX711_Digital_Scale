@@ -134,10 +134,7 @@ C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\main.ino.cpp.
  C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\cores\esp32/io_pin_remap.h \
  C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\cores\esp32/Arduino.h \
- C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\SOICT_HX711.h \
  C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\config.h \
- C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\utility.h \
- C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\main.h \
  C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\screen.h \
  C:\Users\Moderator\Documents\Arduino\libraries\LiquidCrystal_I2C/LiquidCrystal_I2C.h \
  C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\cores\esp32/Print.h \
@@ -149,4 +146,7 @@ C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\main.ino.cpp.
  C:\Users\Moderator\Documents\Arduino\libraries\Adafruit_BusIO/Adafruit_I2CDevice.h \
  C:\Users\Moderator\Documents\Arduino\libraries\Adafruit_BusIO/Adafruit_SPIDevice.h \
  C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\libraries\SPI\src/SPI.h \
- C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\cores\esp32/esp32-hal-spi.h
+ C:\Users\Moderator\AppData\Local\Arduino15\packages\esp32_2.0.17\hardware\esp32\2.0.17\cores\esp32/esp32-hal-spi.h \
+ C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\SOICT_HX711.h \
+ C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\main.h \
+ C:\Users\Moderator\Documents\Documents\GR1_Scale\main\build\sketch\utility.h

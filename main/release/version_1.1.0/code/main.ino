@@ -19,7 +19,7 @@ OLED_SSD1306 screen(128, 64);
 // hx711_gain_t Gain = CHAN_A_GAIN_128;
 int Tare = 0;
 float Scale = SCALE;
-uint8_t Mode = KG_MODE;
+uint8_t Mode = MODE_VI;
 uint16_t Absolute_error = (uint16_t)(Scale * ABSOLUTE_ERROR);
 // //-------------------------------------------------------
 volatile uint8_t tare = 0;
@@ -183,7 +183,7 @@ void loop()
     {
       mode = 0;
       screen.printTitle("Digital Scale");
-      Mode = (Mode == KG_MODE) ? LB_MODE : KG_MODE;
+      Mode = (Mode == MODE_VI) ? LB_MODE : MODE_VI;
       screen.printWeight(_weight);
     }
     //

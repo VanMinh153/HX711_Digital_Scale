@@ -51,7 +51,7 @@ Adafruit_SSD1306 oled(128, 64, &Wire, -1);
 byte Gain = GAIN_128;
 float Scale = SCALE;
 int32_t Zero = 0;
-byte Mode = KG_MODE;
+byte Mode = MODE_VI;
 uint16_t Absolute_error = (uint16_t)(Scale * ABSOLUTE_ERROR);
 uint32_t sensor_error = 0;
 volatile byte tare = 0;
@@ -235,7 +235,7 @@ void loop()
     if (_mode == 1)
     {
       mode = 0;
-      Mode = (Mode == KG_MODE) ? LB_MODE : KG_MODE;
+      Mode = (Mode == MODE_VI) ? LB_MODE : MODE_VI;
       oled_(_w);
     }
     //

@@ -2,54 +2,74 @@
 #ifndef config_h
 #define config_h
 
+// Enable this to use debug code in program
+// #define DEBUG_MODE
 
-#define DEBUB_MODE
-// Define the hardware diagram and hardware opponent
-// choose one of: HW_HX711, HW_HX711x4, HW_HX711x4_Sync
+// Choose hardware opponent
+// Choose number of HX711
 // #define HW_HX711
 #define HW_HX711x4
+#if defined(HW_HX711x4)
 #define HW_MODE_SYNC
+// #define HW_MODE_ASYNC
+#endif
 
-// Choose screen: HW_LCD, HW_OLED
+// Choose display screen
 #define HW_LCD
 // #define HW_OLED
 
-#define UNIT_MAX_LOAD 55
+// Choose temperature sensor
+#define HW_TEMPERATURE
+#define HW_NTC
+#define PIN_NTC 15
+#define BETA 3950 // WOKWI NTC Constants
+// #define HW_DHT
+// #define HW_LM35
+// #define ADC_VREF 3300
+// #define ADC_RESOLUTION 4096
+
+// Choose RFID
+// #define HW_RFID
+#if defined(HW_RFID)
+#define PIN_SS 5
+#define PIN_RST 17
+#endif
+
+// Config for HX711 and load cell
+#define UNIT_MAX_LOAD 50
 #define UNIT_ABSOLUTE_ERROR 0.1f
 #define SCALE 420
-// for SOICT_HX711.h
-// int MaxofData = (int)(UNIT_MAX_LOAD * SCALE)
-
 
 #if defined(HW_HX711)
-#define MAX_LOAD UNIT_MAX_LOAD
-#define ABSOLUTE_ERROR UNIT_ABSOLUTE_ERROR
+#define MAX_LOAD 50
+#define ABSOLUTE_ERROR 0.1f
 #elif defined(HW_HX711x4)
 #define MAX_LOAD (UNIT_MAX_LOAD * 4)
 #define ABSOLUTE_ERROR (UNIT_ABSOLUTE_ERROR * 4)
 #endif
 
-
+// Config for main program
 #define MAIN_DELAY 5
-#define AUTO_SLEEP_TIME 3000
+#define AUTO_SLEEP_TIME 12000
+#define DELAY_RFID_TIME 6000
 #define RECORD_TIME 600
 #define FLICKER_DELAY 350
 #define SLEEP_DELAY 2000
 #define SHOW_RECORD_TIME 2500
 #define SHOW_ISR_TIME 2000
 #define DEBOUNCE_TIME 200
-#define RECORD_NUM 3
-#define KG_MODE 0
-#define LB_MODE 1
+#define RECORD_NUM 6
+#define MODE_VN 0
+#define MODE_US 1
 #define KG_TO_LB 2.204623f
 #define MAIN_TITLE "Digital Scale"
 #define LCD_I2C_ADDRESS 0x27
 #define OLED_I2C_ADDRESS 0x3C
 
+// Config for pins
 #if defined(CONFIG_IDF_TARGET_ESP32)
 #define SDA 21
 #define SCL 22
-
 #define RECORD 12
 #define TARE 13
 #define MODE 14
@@ -106,6 +126,3 @@ uint8_t CLOCK_PIN[4] = {10, 10, 10, 10};
 #endif
 
 #endif
-
-// #define SCALE 1030
-// #define AVG_TIME2READ_G128 105 // 105ms
