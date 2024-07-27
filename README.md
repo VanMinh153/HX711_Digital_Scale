@@ -1,5 +1,3 @@
-<![endif]-->
-
 # ĐỒ ÁN MÔN HỌC
 
 ## Giới thiệu
