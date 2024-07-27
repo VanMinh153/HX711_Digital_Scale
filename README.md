@@ -1,3 +1,5 @@
+<![endif]-->
+
 # ĐỒ ÁN MÔN HỌC
 
 ## Giới thiệu
@@ -83,13 +85,18 @@ $$
 
 ## Tính toán khối lượng
 
-- Khối lượng được tính toán bằng cách đọc dữ liệu từ bộ khuyếch đại HX711 trừ cho giá trị dữ liệu tương đương với 0kg; sau đó chia cho hệ số giữa dữ liệu thu được từ bộ khuyếch đại và khối lượng thực tế.
+ - Khối lượng được tính toán bằng cách đọc dữ liệu từ bộ khuyếch đại HX711 trừ cho giá trị dữ liệu tương đương với 0kg; sau đó chia cho hệ số giữa dữ liệu thu được từ bộ khuyếch đại và khối lượng thực tế.
 
 adc_data: Giá trị đọc được từ HX711
+
 Tare: Giá trị của adc_data tương đương với khối lượng của vỏ cân
+
 m: Khối lượng bao gồm vỏ cân
+
 w: Khối lượng không tính vỏ cân
+
 ⟹ Scale = data / m
+
 ⟹ w = (data – Tare) / Scale
 
 Để tính toán được 2 tham số cần thiết là Scale và Tare. Ta xử lý như sau đối với tham số:
