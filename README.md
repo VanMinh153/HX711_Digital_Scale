@@ -76,7 +76,7 @@ $$
 |  -- | -- 
 | config.h | Khai báo các thành phần phần cứng, các thông số phần cứng và các thông số của chương trình
 | screen.cpp, screen.h | Định nghĩa các lớp dùng để giao tiếp với màn hình LCD1602 I2C, OLED SSD1306
-| HEDSPI_HX711.cpp, HEDSPI_HX711.h | Định nghĩa các lớp dùng để giao tiếp với HX711
+| SOICT_HX711.cpp, SOICT_HX711.h | Định nghĩa các lớp dùng để giao tiếp với HX711
 | utility.cpp, utility.h  | Định nghĩa các hàm tiện ích, các hàm xử lý ngắt
 | main.h | Khai báo các biến toàn cục
 | main.ino | Chương trình chính
