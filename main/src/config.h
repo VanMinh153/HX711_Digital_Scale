@@ -1,21 +1,26 @@
 #ifndef config_h
 #define config_h
 
+#define CONFIG_IDF_TARGET_ESP32 1
 // Enable this to use debug code in program
 // #define DEBUG_MODE
 
-// Choose hardware opponent
-// Choose number of HX711
-// #define HW_HX711
-#define HW_HX711x4
-#if defined(HW_HX711x4)
-#define HW_MODE_SYNC
+/* 
+Choose hardware opponent
+1 HW_HX711
+2 HW_HX711x4: 4 HX711 chips connected to 4 load cells
+  2.1 HW_MODE_SYNC: 4 HX711 chips are connected to the same clock pin
+  2.2 HW_MODE_ASYNC: 4 HX711 chips are connected to different clock pins
+*/
+
+#define HW_HX711
+// #define HW_HX711x4
+// #define HW_MODE_SYNC
 // #define HW_MODE_ASYNC
-#endif
 
 // Choose display screen
 #define HW_LCD
-// #define HW_OLED
+#define HW_OLED
 
 // Choose temperature sensor
 #define HW_TEMPERATURE
@@ -67,8 +72,8 @@
 
 // Config for pins
 #if defined(CONFIG_IDF_TARGET_ESP32)
-#define SDA 21
-#define SCL 22
+#define PIN_SDA 21
+#define PIN_SCL 22
 #define RECORD 12
 #define TARE 13
 #define MODE 14
@@ -87,8 +92,8 @@ uint8_t CLOCK_PIN[4] = {2, 2, 2, 2};
 #endif
 
 #elif defined(CONFIG_IDF_TARGET_ESP32C3)
-#define SDA 2
-#define SCL 3
+#define PIN_SDA 2
+#define PIN_SCL 3
 #define TARE 4
 #define MODE 5
 #define DOWN 8
@@ -104,8 +109,8 @@ uint8_t CLOCK_PIN[4] = {7, 17, 38, 40};
 #endif
 
 #elif defined(CONFIG_IDF_TARGET_ESP32S2)
-#define SDA 33
-#define SCL 35
+#define PIN_SDA 33
+#define PIN_SCL 35
 #define TARE 15
 #define MODE 18
 #define DOWN 17

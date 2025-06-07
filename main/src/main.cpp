@@ -1,4 +1,3 @@
-
 #include "config.h"
 #include "screen.h"
 #include "SOICT_HX711.h"
@@ -97,7 +96,7 @@ void setup()
   rfid.PCD_Init();
 #endif
 
-  Wire.begin(SDA, SCL);
+  Wire.begin(PIN_SDA, PIN_SCL);
   sensor.begin();
   screen.begin();
   delay(1000);

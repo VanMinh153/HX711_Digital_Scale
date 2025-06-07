@@ -1,0 +1,5 @@
+# c_cpp_properties.json
+  "includePath": [
+    "C:/Users/Moderator/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/dio_qspi/include",
+    
+  ]
