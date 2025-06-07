@@ -1,5 +1,3 @@
-// _MACHINE__DEFAULT_TYPES_H
-
 #ifndef main_h
 #define main_h
 

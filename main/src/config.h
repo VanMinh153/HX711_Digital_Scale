@@ -33,7 +33,7 @@ Choose hardware opponent
 // #define ADC_RESOLUTION 4096
 
 // Choose RFID
-// #define HW_RFID
+#define HW_RFID
 #if defined(HW_RFID)
 #define PIN_SS 5
 #define PIN_RST 17
