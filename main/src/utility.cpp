@@ -33,17 +33,21 @@ float readTemperature()
 String readRFID()
 {
   String id = "";
-  if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial())
-  {
-    rfid_flag = 1;
-    for (byte i = 0; i < rfid.uid.size; i++)
-    {
-      id.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
-      id.concat(String(rfid.uid.uidByte[i], HEX));
+  if (rfid.PICC_IsNewCardPresent()) {
+    Serial.println("RFID card detected!");
+    if (rfid.PICC_ReadCardSerial()) {
+      Serial.println("RFID serial read successfully.");
+      rfid_flag = 1;
+      for (byte i = 0; i < rfid.uid.size; i++)
+      {
+        id.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
+        id.concat(String(rfid.uid.uidByte[i], HEX));
+      }
+      Serial.print("Raw RFID UID: ");
+      Serial.println(id);
+    } else {
+      Serial.println("Failed to read RFID serial.");
     }
-#if defined(DEBUG_MODE)
-    Serial.println("`RFID`= " + id);
-#endif
   }
   rfid.PICC_HaltA();
 
