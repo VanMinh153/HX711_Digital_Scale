@@ -19,7 +19,7 @@ Choose hardware opponent
 // #define HW_MODE_ASYNC
 
 // Choose display screen
-#define HW_LCD
+// #define HW_LCD
 #define HW_OLED
 
 // Choose temperature sensor

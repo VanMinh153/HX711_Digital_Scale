@@ -3,6 +3,7 @@
 #include "SOICT_HX711.h"
 #include "main.h"
 #include "utility.h"
+#include "gg_sheets.h"
 
 #if defined(HW_HX711)
 HX711 sensor(DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
@@ -60,6 +61,10 @@ uint8_t detect_new_weight_flag = 0;
 uint8_t interrupt_flag = 0;
 String title = MAIN_TITLE;
 
+Student students[MAX_STUDENTS];
+int studentCount = 0;
+const String Web_App_URL = "https://script.google.com/macros/s/AKfycbxgBql816AfzFdA9Ll0-5N4jnzz9vqk0MXYFIEJLBJ1o_RF8CFjp6oBIZ5Ym0Yr_UajxA/exec";
+
 //----------------------------------------------------------------------------------------------------------------------
 void setup()
 {
@@ -108,6 +113,11 @@ void setup()
   delay(2000);
   screen.clear();
   screen.printTitle(MAIN_TITLE);
+
+  // Đọc danh sách học sinh từ Google Sheet
+  if (!gg_read_students(students, studentCount, Web_App_URL)) {
+    Serial.println("Can't read data from google sheet!");
+  }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -136,6 +146,17 @@ void loop()
     title = _id;
   else
     title = MAIN_TITLE;
+
+  // Sau khi cân xong và có UID RFID, gửi dữ liệu lên Google Sheet
+  if (_id != "" && abs(_data - prev_data) > Absolute_error && abs(_weight) > ABSOLUTE_ERROR) {
+    char uidChar[_id.length() + 1];
+    _id.toCharArray(uidChar, _id.length() + 1);
+    char* studentName = gg_getStudentNameById(uidChar, students, studentCount);
+    String nameStr = studentName ? String(studentName) : String("Unknown");
+    String inout = "VÀO"; // hoặc "RA" nếu có logic phân biệt vào/ra
+    gg_send_weight_result(_id, nameStr, inout, Web_App_URL);
+    delay(1000); // tránh gửi liên tục
+  }
 #endif
 
 #if defined(HW_LCD)
