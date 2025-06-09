@@ -67,8 +67,8 @@ Student students[MAX_STUDENTS];
 int studentCount = 0;
 const String Web_App_URL = "https://script.google.com/macros/s/AKfycbxgBql816AfzFdA9Ll0-5N4jnzz9vqk0MXYFIEJLBJ1o_RF8CFjp6oBIZ5Ym0Yr_UajxA/exec";
 
-const char* ssid = "Trang";  //--> Your wifi name
-const char* password = "20202020";
+const char* ssid = "AaBb";  //--> Your wifi name
+const char* password = "22446699";
 
 //----------------------------------------------------------------------------------------------------------------------
 void setup()

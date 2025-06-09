@@ -5,8 +5,9 @@ function doGet(e) {
     result = 'No Parameters';
   }
   else {
+    // ID Google Sheet và tên sheet mặc định (danh sách học sinh)
     var sheet_id = '1SgEfCjz_7kMSvQw1k_3l_AM2aDRieO2iUTaTsRO6tQA';
-    var sheet_name = "DANHSACH";  // Sheet Name in Google Sheets.
+    var sheet_name = "DANHSACH";  // Sheet chứa danh sách học sinh
 
     var sheet_open = SpreadsheetApp.openById(sheet_id);
     var sheet_target = sheet_open.getSheetByName(sheet_name);
@@ -15,14 +16,16 @@ function doGet(e) {
 
     var rowDataLog = [];
 
+    // Lấy ngày và giờ hiện tại
     var Curr_Date = Utilities.formatDate(new Date(), "Asia/Jakarta", 'dd/MM/yyyy');
-    rowDataLog[0] = Curr_Date;  // Date will be written in column A (in the "DHT11 Sensor Data Logger" section).
+    rowDataLog[0] = Curr_Date;  // Cột A: Ngày
 
     var Curr_Time = Utilities.formatDate(new Date(), "Asia/Jakarta", 'HH:mm:ss');
-    rowDataLog[1] = Curr_Time;  // Time will be written in column B (in the "DHT11 Sensor Data Logger" section).
+    rowDataLog[1] = Curr_Time;  // Cột B: Giờ
 
     var sts_val = '';
 
+    // Xử lý các tham số truyền lên từ ESP32
     for (var param in e.parameter) {
       Logger.log('In for loop, param=' + param);
       var value = stripQuotes(e.parameter[param]);
@@ -31,81 +34,63 @@ function doGet(e) {
         case 'sts':
           sts_val = value;
           break;
-
         case 'uid':
-          rowDataLog[2] = value;  
+          rowDataLog[2] = value;  // Cột C: UID học sinh
           result += ', UID Written';
           break;
-
         case 'name':
-          rowDataLog[3] = value; 
+          rowDataLog[3] = value;  // Cột D: Tên học sinh
           result += ', Name Written';
           break; 
-
-        case 'inout':
-          rowDataLog[4] = value; 
-          result += ', INOUT Written';
+        case 'weight':
+          rowDataLog[4] = value;  // Cột E: Cân nặng
+          result += ', weight Written';
           break;       
-
         default:
           result += ", unsupported parameter";
       }
     }
 
-    // Conditions for writing data received from ESP32 to Google Sheets.
+    // Ghi UID mới nhất vào ô F1 nếu sts=writeuid
     if (sts_val == 'writeuid') {
-      // Writes data to the "DHT11 Sensor Data Logger" section.
       Logger.log(JSON.stringify(rowDataLog));
-      
-      // Ensure rowDataLog is an array and has at least 3 elements
       if (Array.isArray(rowDataLog) && rowDataLog.length > 2) {
         var RangeDataLatest = sheet_target.getRange('F1');
         RangeDataLatest.setValue(rowDataLog[2]);
-        
         return ContentService.createTextOutput('Success');
       } else {
         Logger.log('Error: rowDataLog is not valid');
         return ContentService.createTextOutput('Error: Invalid data');
       }
     }
-    
-    // Conditions for writing data received from ESP32 to Google Sheets.
+    // Ghi log cân nặng vào sheet CANNANG nếu sts=writelog
     if (sts_val == 'writelog') {
-      sheet_name = "CANNANG";  // Sheet Name in Google Sheets.
+      sheet_name = "CANNANG";  // Sheet ghi log cân nặng
       sheet_target = sheet_open.getSheetByName(sheet_name);
-      // Writes data to the "DHT11 Sensor Data Logger" section.
       Logger.log(JSON.stringify(rowDataLog));
-      // Insert a new row above the existing data.
       sheet_target.insertRows(2);
       var newRangeDataLog = sheet_target.getRange(2,1,1, rowDataLog.length);
       newRangeDataLog.setValues([rowDataLog]);
-      //maxRowData(11);
       return ContentService.createTextOutput(result);
     }
-    
-    // Conditions for sending data to ESP32 when ESP32 reads data from Google Sheets.
+    // Đọc danh sách học sinh nếu sts=read
     if (sts_val == 'read') {
-      sheet_name = "DANHSACH";  // Sheet Name in Google Sheets.
+      sheet_name = "DANHSACH";  // Sheet chứa danh sách học sinh
       sheet_target = sheet_open.getSheetByName(sheet_name);
-
-      // Use the line of code below if you want ESP32 to read data from columns I3 to O3 (Date,Time,Sensor Reading Status,Temperature,Humidity,Switch 1, Switch 2).
       var all_Data = sheet_target.getRange('A2:C11').getDisplayValues();
-      
-      // Use the line of code below if you want ESP32 to read data from columns K3 to O3 (Sensor Reading Status,Temperature,Humidity,Switch 1, Switch 2).
-      //var all_Data = sheet_target.getRange('A2:C11').getValues();
       return ContentService.createTextOutput(all_Data);
     }
   }
 }
+// Hàm xóa dữ liệu thừa (không dùng cho WeightControl)
 function maxRowData(allRowsAfter) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet()
                               .getSheetByName('DATA')
-  
   sheet.getRange(allRowsAfter+1, 1, sheet.getLastRow()-allRowsAfter, sheet.getLastColumn())
        .clearContent()
-
 }
+// Hàm loại bỏ dấu nháy khỏi chuỗi
 function stripQuotes( value ) {
-  return value.replace(/^["']|['"]$/g, "");
+  return value.replace(/^['"]|['"]$/g, "");
 }
 //________________

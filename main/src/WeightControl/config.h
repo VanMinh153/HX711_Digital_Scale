@@ -46,7 +46,7 @@ Choose hardware opponent
 
 #if defined(HW_HX711)
 #define MAX_LOAD 50
-#define ABSOLUTE_ERROR 0.1f
+#define ABSOLUTE_ERROR 0.5f
 #elif defined(HW_HX711x4)
 #define MAX_LOAD (UNIT_MAX_LOAD * 4)
 #define ABSOLUTE_ERROR (UNIT_ABSOLUTE_ERROR * 4)

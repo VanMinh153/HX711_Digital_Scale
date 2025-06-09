@@ -1,11 +1,11 @@
-#include "config.h"
-#include "screen.h"
 #include "SOICT_HX711.h"
-#include "main.h"
-#include "utility.h"
+#include "config.h"
 #include "gg_sheets.h"
-#include <WiFi.h>
+#include "main.h"
+#include "screen.h"
+#include "utility.h"
 #include <HTTPClient.h>
+#include <WiFi.h>
 
 #if defined(HW_HX711)
 HX711 sensor(DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
@@ -59,20 +59,21 @@ unsigned long sleep_timer = millis();
 // int prev_readData_val = 0;
 // uint32_t sensor_error = 0;
 uint8_t sleep_flag = 0;
-uint8_t detect_new_weight_flag = 0; 
+uint8_t detect_new_weight_flag = 0;
 uint8_t interrupt_flag = 0;
 String title = MAIN_TITLE;
 
 Student students[MAX_STUDENTS];
 int studentCount = 0;
-const String Web_App_URL = "https://script.google.com/macros/s/AKfycbxgBql816AfzFdA9Ll0-5N4jnzz9vqk0MXYFIEJLBJ1o_RF8CFjp6oBIZ5Ym0Yr_UajxA/exec";
+const String Web_App_URL = "https://script.google.com/macros/s/"
+                           "AKfycbyzcyRQRKRckv6g1rGAd5GbPtAK-IJqVBevDz7CeM1me-"
+                           "j8HsB5l6RdxnltrxlQ6zxuzw/exec";
 
-const char* ssid = "Trang";  //--> Your wifi name
-const char* password = "20202020";
+const char *ssid = "AaBb";
+const char *password = "22446688";
 
 //----------------------------------------------------------------------------------------------------------------------
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   Serial.println("Welcome to Digital Scale!");
   Serial.println();
@@ -82,12 +83,13 @@ void setup()
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-  while(WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
   }
   Serial.println("\nWiFi connected!");
-  Serial.println("[setup] WiFi connected, start reading students from Google Sheets...");
+  Serial.println(
+      "[setup] WiFi connected, start reading students from Google Sheets...");
 
   pinMode(TARE, INPUT_PULLUP);
   pinMode(MODE, INPUT_PULLUP);
@@ -99,7 +101,6 @@ void setup()
   attachInterrupt(UP, upISR, RISING);
   attachInterrupt(DOWN, downISR, RISING);
   attachInterrupt(RECORD, recordISR, RISING);
-
 
 #if defined(HW_NTC)
   analogReadResolution(10);
@@ -144,23 +145,21 @@ void setup()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void loop()
-{
+void loop() {
 #if defined(HW_HX711x4)
   sensor.DataUnitMax = UNIT_MAX_LOAD * Scale;
 #endif
 
-  _data = getData_();
+  _data = -getData_();
   _weight = toWeight(_data);
 
   title = MAIN_TITLE;
-  
+
 #if defined(HW_RFID)
   _id = readRFID();
-  if (_id == "" && prev_id != "" && millis() - rfid_timer < DELAY_RFID_TIME )
-      _id = prev_id;
-  else
-  {
+  if (_id == "" && prev_id != "" && millis() - rfid_timer < DELAY_RFID_TIME)
+    _id = prev_id;
+  else {
     prev_id = _id;
     rfid_timer = millis();
   }
@@ -171,20 +170,23 @@ void loop()
     title = MAIN_TITLE;
 
   // Sau khi cân xong và có UID RFID, gửi dữ liệu lên Google Sheet
-  if (_id != "" && abs(_data - prev_data) > Absolute_error && abs(_weight) > ABSOLUTE_ERROR) {
+  if (_id != "") {
     char uidChar[_id.length() + 1];
     _id.toCharArray(uidChar, _id.length() + 1);
-    char* studentName = gg_getStudentNameById(uidChar, students, studentCount);
+    char *studentName = gg_getStudentNameById(uidChar, students, studentCount);
     String nameStr = studentName ? String(studentName) : String("Unknown");
-    String weight = String(_weight, 2); // Đổi tên biến từ inout sang weight
+    String weight = String(record_weight[record_weight_idx], 2);
     Serial.println();
     Serial.println("-------------");
-    Serial.println("[loop] Send data to Google Spreadsheet...");
-    Serial.print("[loop] UID: "); Serial.println(_id);
-    Serial.print("[loop] Name: "); Serial.println(nameStr);
-    Serial.print("[loop] Weight: "); Serial.println(weight);
+    Serial.println("Send data to Google Spreadsheet...");
+    Serial.print("UID: ");
+    Serial.println(_id);
+    Serial.print("Name: ");
+    Serial.println(nameStr);
+    Serial.print("Weight: ");
+    Serial.println(weight);
     gg_send_weight_result(_id, nameStr, weight, Web_App_URL);
-    delay(1000); // tránh gửi liên tục
+    delay(500);
   }
 #endif
 
@@ -197,13 +199,12 @@ void loop()
 #endif
 
 #if defined(HW_OLED)
-  if (abs(_data - prev_data) > Absolute_error)
-  {
+  if (abs(_data - prev_data) > Absolute_error) {
     screen.printTitle(title);
     screen.printWeight(_weight);
   }
 #endif
-  
+
   if (sleep_flag == 1)
     prev_data = 0;
 
@@ -212,22 +213,18 @@ void loop()
   detect_new_weight_flag = 0;
 
   // feature: Auto turn off the screen backlight
-  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in AUTO_SLEEP_TIME seconds
-  if (abs(_data - prev_data) < 2 * Absolute_error)
-  {
-    while (millis() - sleep_timer > AUTO_SLEEP_TIME)
-    {
-      if (_data == 0)
-      {
+  // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in
+  // AUTO_SLEEP_TIME seconds
+  if (abs(_data - prev_data) < 2 * Absolute_error) {
+    while (millis() - sleep_timer > AUTO_SLEEP_TIME) {
+      if (_data == 0) {
         sleep_flag = 1;
         sleep_();
         break;
       }
-      for (int i = 0; i < 2; i++)
-      {
+      for (int i = 0; i < 2; i++) {
         screen.noBacklight();
-        if (waitForWeightChange(FLICKER_DELAY) != 0)
-        {
+        if (waitForWeightChange(FLICKER_DELAY) != 0) {
           screen.backlight();
           break;
         }
@@ -242,13 +239,13 @@ void loop()
       sleep_();
       break;
     }
-  }
-  else
+  } else
     sleep_timer = millis();
 
   // feature: Save the results of the last RECORD_NUM weightings
-  if (millis() - sleep_timer > RECORD_TIME && abs(_weight - record_weight[record_weight_idx]) > ABSOLUTE_ERROR && abs(_weight) > ABSOLUTE_ERROR)
-  {
+  if (millis() - sleep_timer > RECORD_TIME &&
+      abs(_weight - record_weight[record_weight_idx]) > ABSOLUTE_ERROR &&
+      abs(_weight) > 5*ABSOLUTE_ERROR) {
     record_weight_idx++;
     if (record_weight_idx == RECORD_NUM)
       record_weight_idx = 0;
@@ -262,8 +259,7 @@ void loop()
 
   //----------------------------------------------------------------------------------------------------------------------
   // Interrupt handling
-  while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1)
-  {
+  while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1) {
     // Serial.print('*');
     uint8_t _tare = tare;
     uint8_t _mode = mode;
@@ -274,8 +270,7 @@ void loop()
     interrupt_flag = 1;
 
     // feature: Adjust the scale to 0 kg
-    if (_tare == 1)
-    {
+    if (_tare == 1) {
       tare = 0;
       screen.printTitle("Digital Scale");
       screen.printContent("Taring...");
@@ -286,23 +281,20 @@ void loop()
     }
 
     // feature: Change weight unit from kilogram to pound
-    if (_mode == 1)
-    {
+    if (_mode == 1) {
       mode = 0;
       screen.printTitle("Digital Scale");
       Mode = (Mode == MODE_VN) ? MODE_US : MODE_VN;
       screen.printWeight(_weight);
     }
     //
-    if (_up == 1 || _down == 1)
-    {
+    if (_up == 1 || _down == 1) {
       delay(DEBOUNCE_TIME);
       screen.printTitle("Adjust Scale    ");
     }
     // feature: Adjust weighting result up
     float w;
-    while (_up == 1 && up == 1)
-    {
+    while (_up == 1 && up == 1) {
       Scale -= 0.5;
       w = _data / Scale;
       screen.printWeight(w);
@@ -314,8 +306,7 @@ void loop()
     }
 
     // feature: Adjust weighting result down
-    while (_down == 1 && down == 1)
-    {
+    while (_down == 1 && down == 1) {
       Scale += 0.5;
       w = _data / Scale;
       screen.printWeight(w);
@@ -328,17 +319,15 @@ void loop()
 
     // feature: View the results of the last weightings
     uint8_t k = 0;
-    while (_record == 1 && record == 1)
-    {
+    while (_record == 1 && record == 1) {
       record = 0;
       k++;
-      if (k == RECORD_NUM + 1)
-      {
+      if (k == RECORD_NUM + 1) {
         k = 0;
         break;
       }
       int idx = (record_weight_idx - k + RECORD_NUM + 1) % RECORD_NUM;
-      
+
       if (record_id[idx] != "")
         screen.printTitle(record_id[idx]);
       else
@@ -353,8 +342,7 @@ void loop()
 
     if (_record == 1)
       NULL;
-    else
-    {
+    else {
       if (waitOnInterrupt(SHOW_ISR_TIME) == 1)
         continue;
     }

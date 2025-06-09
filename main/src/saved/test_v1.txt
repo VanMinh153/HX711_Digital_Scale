@@ -1,0 +1,28 @@
+Connecting to AaBb
+..
+WiFi connected!
+[setup] WiFi connected, start reading students from Google Sheets...
+[gg_read_students] URL: https://script.google.com/macros/s/AKfycbyzcyRQRKRckv6g1rGAd5GbPtAK-IJqVBevDz7CeM1me-j8HsB5l6RdxnltrxlQ6zxuzw/exec?sts=read
+[gg_read_students] HTTP Status Code: 200
+[gg_read_students] Payload: 1,f3 77 9e 35,Nguyen Van Minh,2,23 8a f9 0c,Nghiem Xuan Dien,,,,,,,,,,,,,,,,,,,,,,,,
+[gg_read_students] Number of elements: 6
+[gg_read_students] Student 0: code=f3 77 9e 3Nguyen Van Minh, name=Nguyen Van Minh
+[gg_read_students] Student 1: code=23 8a f9 0Nghiem Xuan Dien, name=Nghiem Xuan Dien
+[setup] Read 2 students from Google Sheets.
+Record: -4.70
+Sleeping... > Awake: Detect Weight Changes
+Record: -4.18
+Sleeping... > Awake: Detect Weight Changes
+Sleeping... > Awake: Detect Weight Changes
+Sleeping... > Awake: Detect Weight Changes
+RFID card detected!
+RFID serial read successfully.
+Raw RFID UID:  23 8a f9 0c
+
+-------------
+[loop] Send data to Google Spreadsheet...
+[loop] UID:  23 8a f9 0c
+[loop] Name: Unknown
+[loop] Weight: -4.18
+[gg_send_weight_result] URL: https://script.google.com/macros/s/AKfycbyzcyRQRKRckv6g1rGAd5GbPtAK-IJqVBevDz7CeM1me-j8HsB5l6RdxnltrxlQ6zxuzw/exec?sts=writelog&uid= 23 8a f9 0c&name=Unknown&weight=%2D4%2E18
+[gg_send_weight_result] HTTP Status Code: 400

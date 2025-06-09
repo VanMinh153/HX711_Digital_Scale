@@ -39,7 +39,7 @@ String readRFID()
       Serial.println("RFID serial read successfully.");
       for (byte i = 0; i < rfid.uid.size; i++)
       {
-        id.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
+        id.concat(String(rfid.uid.uidByte[i] < 0x10 ? "0" : ""));
         id.concat(String(rfid.uid.uidByte[i], HEX));
       }
       Serial.print("Raw RFID UID: ");
