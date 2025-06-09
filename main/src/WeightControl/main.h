@@ -56,6 +56,5 @@ extern unsigned long sleep_timer;
 // extern uint8_t sleep_flag;
 extern uint8_t detect_new_weight_flag;
 // extern uint8_t interrupt_flag;
-extern uint8_t rfid_flag;
 
 #endif

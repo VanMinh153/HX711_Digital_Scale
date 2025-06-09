@@ -37,7 +37,6 @@ String readRFID()
     Serial.println("RFID card detected!");
     if (rfid.PICC_ReadCardSerial()) {
       Serial.println("RFID serial read successfully.");
-      rfid_flag = 1;
       for (byte i = 0; i < rfid.uid.size; i++)
       {
         id.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));

@@ -5,17 +5,23 @@
 bool gg_read_students(Student* students, int& studentCount, const String& webAppUrl) {
     if (WiFi.status() == WL_CONNECTED) {
         String Read_Data_URL = webAppUrl + "?sts=read";
+        Serial.println("[gg_read_students] URL: " + Read_Data_URL);
         HTTPClient http;
         http.begin(Read_Data_URL.c_str());
         http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
         int httpCode = http.GET();
+        Serial.print("[gg_read_students] HTTP Status Code: ");
+        Serial.println(httpCode);
         String payload;
         studentCount = 0;
         if (httpCode > 0) {
             payload = http.getString();
+            Serial.println("[gg_read_students] Payload: " + payload);
             char charArray[payload.length() + 1];
             payload.toCharArray(charArray, payload.length() + 1);
             int numberOfElements = gg_countElements(charArray, ',');
+            Serial.print("[gg_read_students] Number of elements: ");
+            Serial.println(numberOfElements);
             char *token = strtok(charArray, ",");
             while (token != NULL && studentCount < numberOfElements/3) {
                 students[studentCount].id = atoi(token);
@@ -23,23 +29,35 @@ bool gg_read_students(Student* students, int& studentCount, const String& webApp
                 strcpy(students[studentCount].code, token);
                 token = strtok(NULL, ",");
                 strcpy(students[studentCount].name, token);
+                Serial.print("[gg_read_students] Student ");
+                Serial.print(studentCount);
+                Serial.print(": code=");
+                Serial.print(students[studentCount].code);
+                Serial.print(", name=");
+                Serial.println(students[studentCount].name);
                 studentCount++;
                 token = strtok(NULL, ",");
             }
+        } else {
+            Serial.println("[gg_read_students] HTTP request failed!");
         }
         http.end();
         return studentCount > 0;
     }
+    Serial.println("[gg_read_students] WiFi not connected!");
     return false;
 }
 
 void gg_send_uid(const String& uid, const String& webAppUrl) {
     String Send_Data_URL = webAppUrl + "?sts=writeuid";
     Send_Data_URL += "&uid=" + uid;
+    Serial.println("[gg_send_uid] URL: " + Send_Data_URL);
     HTTPClient http;
     http.begin(Send_Data_URL.c_str());
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    http.GET();
+    int httpCode = http.GET();
+    Serial.print("[gg_send_uid] HTTP Status Code: ");
+    Serial.println(httpCode);
     http.end();
 }
 
@@ -48,10 +66,13 @@ void gg_send_weight_result(const String& uid, const String& name, const String& 
     Send_Data_URL += "&uid=" + uid;
     Send_Data_URL += "&name=" + gg_urlencode(name);
     Send_Data_URL += "&weight=" + gg_urlencode(weight);
+    Serial.println("[gg_send_weight_result] URL: " + Send_Data_URL);
     HTTPClient http;
     http.begin(Send_Data_URL.c_str());
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    http.GET();
+    int httpCode = http.GET();
+    Serial.print("[gg_send_weight_result] HTTP Status Code: ");
+    Serial.println(httpCode);
     http.end();
 }
 

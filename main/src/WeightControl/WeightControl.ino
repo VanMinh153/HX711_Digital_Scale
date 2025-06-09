@@ -87,6 +87,7 @@ void setup()
     delay(1000);
   }
   Serial.println("\nWiFi connected!");
+  Serial.println("[setup] WiFi connected, start reading students from Google Sheets...");
 
   pinMode(TARE, INPUT_PULLUP);
   pinMode(MODE, INPUT_PULLUP);
@@ -134,7 +135,11 @@ void setup()
 
   // Đọc danh sách học sinh từ Google Sheet
   if (!gg_read_students(students, studentCount, Web_App_URL)) {
-    Serial.println("Can't read data from google sheet!");
+    Serial.println("[setup] Can't read data from google sheet!");
+  } else {
+    Serial.print("[setup] Read ");
+    Serial.print(studentCount);
+    Serial.println(" students from Google Sheets.");
   }
 }
 
@@ -174,10 +179,10 @@ void loop()
     String weight = String(_weight, 2); // Đổi tên biến từ inout sang weight
     Serial.println();
     Serial.println("-------------");
-    Serial.println("Send data to Google Spreadsheet...");
-    Serial.print("UID: "); Serial.println(_id);
-    Serial.print("Name: "); Serial.println(nameStr);
-    Serial.print("Weight: "); Serial.println(weight);
+    Serial.println("[loop] Send data to Google Spreadsheet...");
+    Serial.print("[loop] UID: "); Serial.println(_id);
+    Serial.print("[loop] Name: "); Serial.println(nameStr);
+    Serial.print("[loop] Weight: "); Serial.println(weight);
     gg_send_weight_result(_id, nameStr, weight, Web_App_URL);
     delay(1000); // tránh gửi liên tục
   }
