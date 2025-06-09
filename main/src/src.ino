@@ -4,6 +4,8 @@
 #include "main.h"
 #include "utility.h"
 #include "gg_sheets.h"
+#include <WiFi.h>
+#include <HTTPClient.h>
 
 #if defined(HW_HX711)
 HX711 sensor(DATA_PIN, CLOCK_PIN, CHAN_A_GAIN_128);
@@ -65,11 +67,27 @@ Student students[MAX_STUDENTS];
 int studentCount = 0;
 const String Web_App_URL = "https://script.google.com/macros/s/AKfycbxgBql816AfzFdA9Ll0-5N4jnzz9vqk0MXYFIEJLBJ1o_RF8CFjp6oBIZ5Ym0Yr_UajxA/exec";
 
+const char* ssid = "Trang";  //--> Your wifi name
+const char* password = "20202020";
+
 //----------------------------------------------------------------------------------------------------------------------
 void setup()
 {
   Serial.begin(115200);
   Serial.println("Welcome to Digital Scale!");
+  Serial.println();
+  Serial.println("-------------");
+  Serial.println("WIFI mode : STA");
+  Serial.println("-------------");
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while(WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(1000);
+  }
+  Serial.println("\nWiFi connected!");
+
   pinMode(TARE, INPUT_PULLUP);
   pinMode(MODE, INPUT_PULLUP);
   pinMode(UP, INPUT_PULLUP);
@@ -153,8 +171,14 @@ void loop()
     _id.toCharArray(uidChar, _id.length() + 1);
     char* studentName = gg_getStudentNameById(uidChar, students, studentCount);
     String nameStr = studentName ? String(studentName) : String("Unknown");
-    String inout = "VÀO"; // hoặc "RA" nếu có logic phân biệt vào/ra
-    gg_send_weight_result(_id, nameStr, inout, Web_App_URL);
+    String weight = String(_weight, 2); // Đổi tên biến từ inout sang weight
+    Serial.println();
+    Serial.println("-------------");
+    Serial.println("Send data to Google Spreadsheet...");
+    Serial.print("UID: "); Serial.println(_id);
+    Serial.print("Name: "); Serial.println(nameStr);
+    Serial.print("Weight: "); Serial.println(weight);
+    gg_send_weight_result(_id, nameStr, weight, Web_App_URL);
     delay(1000); // tránh gửi liên tục
   }
 #endif
