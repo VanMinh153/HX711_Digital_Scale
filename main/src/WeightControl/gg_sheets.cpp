@@ -17,11 +17,24 @@ bool gg_read_students(Student *students, int &studentCount,
     studentCount = 0;
     if (httpCode > 0) {
       payload = http.getString();
-      Serial.println("[gg_read_students] Payload: " + payload);
-      char charArray[payload.length() + 1];
-      payload.toCharArray(charArray, payload.length() + 1);
+      Serial.print("[gg_read_students] Payload length: ");
+      Serial.println(payload.length());
+      if (payload.length() == 0) {
+        Serial.println("[gg_read_students][ERROR] Payload rỗng!");
+        http.end();
+        return false;
+      }
+      if (payload.length() > 2048) {
+        Serial.println(
+            "[gg_read_students][ERROR] Payload quá lớn, không xử lý để tránh "
+            "tràn bộ nhớ!");
+        http.end();
+        return false;
+      }
+      char charArray[2048];
+      payload.toCharArray(charArray, sizeof(charArray));
       char *token = strtok(charArray, ",");
-      while (token != NULL) {
+      while (token != NULL && studentCount < MAX_STUDENTS) {
         // Đọc id
         students[studentCount].id = atoi(token);
         token = strtok(NULL, ",");
@@ -49,6 +62,8 @@ bool gg_read_students(Student *students, int &studentCount,
         studentCount++;
         token = strtok(NULL, ",");
       }
+      Serial.print("[gg_read_students] Tổng số học sinh đọc được: ");
+      Serial.println(studentCount);
     } else {
       Serial.println("[gg_read_students] HTTP request failed!");
     }

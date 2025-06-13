@@ -4,6 +4,7 @@ STT	MA RFID	HO VA TEN
 
 NGAY	GIO	MA RFID	HO VA TEN	CAN NANG
 
-
-1SgEfCjz_7kMSvQw1k_3l_AM2aDRieO2iUTaTsRO6tQA
-https://script.google.com/macros/s/AKfycbxgBql816AfzFdA9Ll0-5N4jnzz9vqk0MXYFIEJLBJ1o_RF8CFjp6oBIZ5Ym0Yr_UajxA/exec
+Báo cáo trong khoảng 10p, làm khoảng 15 slide.
+Báo cáo ngay sau giờ thi.
+Thi tự luận 16/06/2026, D9-301, 15h00
+Đề bài: các câu hỏi kiểm tra nền tảng lý thuyết

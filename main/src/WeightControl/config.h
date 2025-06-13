@@ -81,7 +81,7 @@ Choose hardware opponent
 #define UP 26
 
 #if defined(HW_HX711)
-#define DATA_PIN 0
+#define DATA_PIN 16
 #define CLOCK_PIN 2
 #elif defined(HW_HX711x4) && !defined(HW_MODE_SYNC)
 uint8_t DATA_PIN[4] = {0, 17, 18, 23};
