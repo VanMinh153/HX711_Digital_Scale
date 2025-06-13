@@ -23,8 +23,8 @@ Choose hardware opponent
 #define HW_OLED
 
 // Choose temperature sensor
-#define HW_TEMPERATURE
-#define HW_NTC
+// #define HW_TEMPERATURE
+// #define HW_NTC
 #define PIN_NTC 15
 #define BETA 3950 // WOKWI NTC Constants
 // #define HW_DHT
@@ -46,7 +46,7 @@ Choose hardware opponent
 
 #if defined(HW_HX711)
 #define MAX_LOAD 50
-#define ABSOLUTE_ERROR 0.5f
+#define ABSOLUTE_ERROR 0.1f
 #elif defined(HW_HX711x4)
 #define MAX_LOAD (UNIT_MAX_LOAD * 4)
 #define ABSOLUTE_ERROR (UNIT_ABSOLUTE_ERROR * 4)

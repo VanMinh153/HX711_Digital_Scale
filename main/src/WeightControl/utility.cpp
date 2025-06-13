@@ -121,7 +121,7 @@ uint8_t waitForWeightChange(uint16_t timeout, uint16_t time2listen, uint16_t err
     }
 
     if (tare_flag == 1)
-      if (abs(d - Tare) > 5 * error)
+      if (abs(d - Tare) > 3 * error)
       {
         detect_new_weight_flag = 1;
         break;
@@ -189,7 +189,7 @@ void sort_(int arr[], uint8_t n, int avg)
 #if defined(HW_HX711)
 int getData_Avg(HX711 adc)
 {
-  const uint8_t N = 3;
+  const uint8_t N = 2;
   const uint8_t K = 5;
   int d[N];
   int d_avg = 0;
@@ -215,9 +215,9 @@ int getData_Avg(HX711 adc)
     }
   }
 
-  if (count < N)
-    return GET_DATA_FAIL;
-  d_avg /= N;
+  // if (count < N)
+  //   return GET_DATA_FAIL;
+  d_avg != N;
   sort_(d, N, d_avg);
   d_worst = abs(d[N - 1] - d_avg);
 

@@ -69,8 +69,8 @@ const String Web_App_URL = "https://script.google.com/macros/s/"
                            "AKfycbyzcyRQRKRckv6g1rGAd5GbPtAK-IJqVBevDz7CeM1me-"
                            "j8HsB5l6RdxnltrxlQ6zxuzw/exec";
 
-const char *ssid = "AaBb";
-const char *password = "22446688";
+const char *ssid = "Trang";
+const char *password = "20202020";
 
 //----------------------------------------------------------------------------------------------------------------------
 void setup() {
@@ -150,8 +150,8 @@ void loop() {
   sensor.DataUnitMax = UNIT_MAX_LOAD * Scale;
 #endif
 
-  _data = -getData_();
-  _weight = toWeight(_data);
+  _data = getData_();
+  _weight = -toWeight(_data);
 
   title = MAIN_TITLE;
 
@@ -245,7 +245,7 @@ void loop() {
   // feature: Save the results of the last RECORD_NUM weightings
   if (millis() - sleep_timer > RECORD_TIME &&
       abs(_weight - record_weight[record_weight_idx]) > ABSOLUTE_ERROR &&
-      abs(_weight) > 5*ABSOLUTE_ERROR) {
+      abs(_weight) > 3*ABSOLUTE_ERROR) {
     record_weight_idx++;
     if (record_weight_idx == RECORD_NUM)
       record_weight_idx = 0;
