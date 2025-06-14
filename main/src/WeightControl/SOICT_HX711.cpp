@@ -1,13 +1,14 @@
 /**
- * @brief      Library for HX711
+ * @brief      Library for HX711 load cell ADC
  * @author     Nguyen Van Minh - SOICT - HUST
+ * @date       2025-06-14
+ *
+ * This file implements the HX711Mini, HX711, and HX711List classes for interfacing
+ * with one or more HX711 ADC chips for load cell applications.
  */
-
 #include "SOICT_HX711.h"
 
-// #define powerUp()
-
-// HX711Mini class
+// HX711Mini class: basic low-level interface for a single HX711 chip
 HX711Mini::HX711Mini() {}
 
 HX711Mini::HX711Mini(uint8_t dataPin, uint8_t clockPin)
@@ -15,6 +16,7 @@ HX711Mini::HX711Mini(uint8_t dataPin, uint8_t clockPin)
 
 void HX711Mini::begin()
 {
+  // Set up pins for communication
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, INPUT);
   digitalWrite(clockPin, LOW);
@@ -22,22 +24,24 @@ void HX711Mini::begin()
 
 inline void HX711Mini::powerDown()
 {
+  // Enter power down mode (min 60us)
   digitalWrite(clockPin, HIGH);
-  // time to power down mode: min 60us
   delayMicroseconds(65);
 }
 
 inline void HX711Mini::powerUp()
 {
+  // Exit power down mode
   digitalWrite(clockPin, LOW);
 }
 
 inline bool HX711Mini::isReady()
 {
+  // Data pin LOW means ready
   return digitalRead(dataPin) == LOW;
 }
 
-// Read data from HX711 and set gain after read
+// Read 24 bits from HX711, set gain after read
 int HX711Mini::readData(hx711_gain_t gain_val)
 {
   const uint8_t max_wait = 105; // max wait time (105ms)
@@ -45,23 +49,22 @@ int HX711Mini::readData(hx711_gain_t gain_val)
   while (isReady() == false && millis() - timer < max_wait)
     delay(1);
 
-  // time wait after ready signal: min 0.1us
-  delayMicroseconds(1);
+  delayMicroseconds(1); // Wait after ready
   if (isReady() == false)
     return HX711_FAIL;
 
   int data = 0;
+  // Read 24 bits of data
   for (int i = 0; i < 24; i++)
-  { // response time: max 0.1us
-    // clock pin high time: min 0.2us, typ 1us, max 50us
-    // clock pin low time: min 0.2us, typ 1us
+  {
     digitalWrite(clockPin, HIGH);
     delayMicroseconds(1);
-    data = (data << 1) | digitalRead(dataPin);
+    data = (data << 1) | digitalRead(dataPin); // Shift in next bit
     digitalWrite(clockPin, LOW);
     delayMicroseconds(1);
   }
 
+  // Set gain for next reading
   for (int i = 0; i < gain_val - 24; i++)
   {
     digitalWrite(clockPin, HIGH);
@@ -70,14 +73,15 @@ int HX711Mini::readData(hx711_gain_t gain_val)
     delayMicroseconds(1);
   }
 
-  // data pin will be HIGH after read process
+  // Data pin should be HIGH after read
   if (digitalRead(dataPin) == LOW)
     return HX711_FAIL;
 
-  // Overflow and Underflow
+  // Check for overflow/underflow
   if (data == 0x7FFFFF || data == 0x800000)
     return HX711_FAIL;
 
+  // Sign extension for negative values
   if ((data & BIT23) > 0)
     data |= 0xFF000000;
 
@@ -85,7 +89,7 @@ int HX711Mini::readData(hx711_gain_t gain_val)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// HX711 class
+// HX711 class: adds tare, scale, and gain management
 HX711::HX711()
     : HX711Mini() {}
 
@@ -182,7 +186,7 @@ int HX711::readData(hx711_gain_t gain_val)
 }
 
 //----------------------------------------------------------------------------------------------------------------_____
-// HX711List class
+// HX711List class: manages multiple HX711 chips (for multi-load-cell setups)
 HX711List::HX711List(uint8_t size_val, uint8_t *dataPin_val, uint8_t *clockPin_val, hx711_gain_t gain_val)
     : Size(size_val)
 {

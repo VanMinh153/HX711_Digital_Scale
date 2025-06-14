@@ -1,3 +1,8 @@
+// WeightControl.ino - Main Arduino sketch for digital scale
+// Includes: HX711 load cell, display, RFID, temperature, Google Sheets logging
+// Author: VanMinh153
+// Date: 2025-06-14
+
 #include "SOICT_HX711.h"
 #include "config.h"
 #include "gg_sheets.h"
@@ -76,6 +81,7 @@ const char *password = "20202020";
 void setup() {
   Serial.begin(115200);
   Serial.println("Welcome to Digital Scale!");
+  // Initialize WiFi connection
   Serial.println();
   Serial.println("-------------");
   Serial.println("WIFI mode : STA");
@@ -91,6 +97,7 @@ void setup() {
   Serial.println(
       "[setup] WiFi connected, start reading students from Google Sheets...");
 
+  // Setup input pins and interrupts for buttons
   pinMode(TARE, INPUT_PULLUP);
   pinMode(MODE, INPUT_PULLUP);
   pinMode(UP, INPUT_PULLUP);
@@ -121,11 +128,13 @@ void setup() {
   rfid.PCD_Init();
 #endif
 
+  // Initialize I2C, sensor, and screen
   Wire.begin(PIN_SDA, PIN_SCL);
   sensor.begin();
   screen.begin();
   delay(1000);
 
+  // Initial tare and welcome message
   sensor.readData();
   Tare = sensor.readData();
   screen.printTitle(MAIN_TITLE);
@@ -134,7 +143,7 @@ void setup() {
   screen.clear();
   screen.printTitle(MAIN_TITLE);
 
-  // Đọc danh sách học sinh từ Google Sheet
+  // Read student list from Google Sheets
   if (!gg_read_students(students, studentCount, Web_App_URL)) {
     Serial.println("[setup] Can't read data from google sheet!");
   } else {
@@ -146,15 +155,16 @@ void setup() {
 
 //----------------------------------------------------------------------------------------------------------------------
 void loop() {
+  // Main loop: handles weighing, display, RFID, sleep, and record logic
 #if defined(HW_HX711x4)
   sensor.DataUnitMax = UNIT_MAX_LOAD * Scale;
 #endif
 
+  // 1. Read sensor data and convert to weight
   _data = getData_();
   _weight = toWeight(_data);
 
-  title = MAIN_TITLE;
-
+  // 2. Handle RFID logic: read card, update title, send data to Google Sheets
 #if defined(HW_RFID)
   _id = readRFID();
   if (_id == "" && prev_id != "" && millis() - rfid_timer < DELAY_RFID_TIME)
@@ -190,6 +200,7 @@ void loop() {
   }
 #endif
 
+  // 3. Display logic: update screen if weight changes or on interrupt
 #if defined(HW_LCD)
   if (sleep_flag == 1 || interrupt_flag == 1)
     screen.printTitle(title);
@@ -212,7 +223,7 @@ void loop() {
   interrupt_flag = 0;
   detect_new_weight_flag = 0;
 
-  // feature: Auto turn off the screen backlight
+  // 4. Auto-sleep feature: turn off backlight if weight is stable for AUTO_SLEEP_TIME
   // if the weighing result does not change by more than (ABSOLUTE_ERROR)kg in
   // AUTO_SLEEP_TIME seconds
   if (abs(_data - prev_data) < 2 * Absolute_error) {
@@ -242,7 +253,7 @@ void loop() {
   } else
     sleep_timer = millis();
 
-  // feature: Save the results of the last RECORD_NUM weightings
+  // 5. Record feature: save last RECORD_NUM weightings
   if (millis() - sleep_timer > RECORD_TIME &&
       abs(_weight - record_weight[record_weight_idx]) > ABSOLUTE_ERROR &&
       abs(_weight) > 3*ABSOLUTE_ERROR) {
@@ -258,7 +269,7 @@ void loop() {
     prev_data = _data;
 
   //----------------------------------------------------------------------------------------------------------------------
-  // Interrupt handling
+  // 6. Interrupt handling: button presses for tare, mode, up/down, record
   while (tare == 1 || mode == 1 || up == 1 || down == 1 || record == 1) {
     // Serial.print('*');
     uint8_t _tare = tare;
@@ -352,5 +363,5 @@ void loop() {
   }
   prev_interrupt = interrupt;
 
-  delay(MAIN_DELAY);
+  delay(MAIN_DELAY); // Main loop delay
 }

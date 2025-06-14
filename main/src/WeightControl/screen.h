@@ -9,19 +9,21 @@
 extern uint8_t Mode;
 extern float readTemperature();
 
+// Abstract base class for all screen types
 class Screen
 {
 public:
-  virtual void begin() = 0;
-  virtual void clear() = 0;
-  virtual void noBacklight() = 0;
-  virtual void backlight() = 0;
-  virtual void printWeight(float w) = 0;
-  virtual void printTemperature(float t) = 0;
-  virtual void printTitle(String title) = 0;
-  virtual void printContent(String content) = 0;
+  virtual void begin() = 0;           // Initialize screen
+  virtual void clear() = 0;           // Clear display
+  virtual void noBacklight() = 0;     // Turn off backlight/dim
+  virtual void backlight() = 0;       // Turn on backlight/brighten
+  virtual void printWeight(float w) = 0;      // Show weight
+  virtual void printTemperature(float t) = 0; // Show temperature
+  virtual void printTitle(String title) = 0;  // Show title
+  virtual void printContent(String content) = 0; // Show content
 };
 
+// LCD implementation
 class LCD_I2C : public LiquidCrystal_I2C, public Screen
 {
 public:
@@ -37,6 +39,7 @@ public:
   void printContent(String content) override;
 };
 
+// OLED implementation
 class OLED_SSD1306 : Adafruit_SSD1306, public Screen
 {
 public:
@@ -52,6 +55,7 @@ public:
   void printContent(String content) override;
 };
 
+// Test screen: combines LCD and OLED
 class TEST_Screen : public Screen
 {
 public:
@@ -68,6 +72,5 @@ public:
   void printTitle(String title) override;
   void printContent(String content) override;
 };
-
 
 #endif

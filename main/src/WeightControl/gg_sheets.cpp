@@ -2,6 +2,8 @@
 #include <HTTPClient.h>
 #include <WiFi.h>
 
+// Reads student list from Google Sheets via HTTP GET
+// Returns true if successful, false otherwise
 bool gg_read_students(Student *students, int &studentCount,
                       const String &webAppUrl) {
   if (WiFi.status() == WL_CONNECTED) {
@@ -19,6 +21,7 @@ bool gg_read_students(Student *students, int &studentCount,
       payload = http.getString();
       Serial.print("[gg_read_students] Payload length: ");
       Serial.println(payload.length());
+      // Check for empty or too large payloads
       if (payload.length() == 0) {
         Serial.println("[gg_read_students][ERROR] Payload rỗng!");
         http.end();
@@ -31,16 +34,17 @@ bool gg_read_students(Student *students, int &studentCount,
         http.end();
         return false;
       }
+      // Parse CSV payload: id,code,name,...
       char charArray[2048];
       payload.toCharArray(charArray, sizeof(charArray));
       char *token = strtok(charArray, ",");
       while (token != NULL && studentCount < MAX_STUDENTS) {
-        // Đọc id
+        // Read id
         students[studentCount].id = atoi(token);
         token = strtok(NULL, ",");
         if (token == NULL)
           break;
-        // Đọc code
+        // Read code
         strncpy(students[studentCount].code, token,
                 sizeof(students[studentCount].code) - 1);
         students[studentCount].code[sizeof(students[studentCount].code) - 1] =
@@ -48,7 +52,7 @@ bool gg_read_students(Student *students, int &studentCount,
         token = strtok(NULL, ",");
         if (token == NULL)
           break;
-        // Đọc name
+        // Read name
         strncpy(students[studentCount].name, token,
                 sizeof(students[studentCount].name) - 1);
         students[studentCount].name[sizeof(students[studentCount].name) - 1] =
@@ -74,6 +78,7 @@ bool gg_read_students(Student *students, int &studentCount,
   return false;
 }
 
+// Sends UID to Google Sheets
 void gg_send_uid(const String &uid, const String &webAppUrl) {
   String Send_Data_URL = webAppUrl + "?sts=writeuid";
   Send_Data_URL += "&uid=" + uid;
@@ -87,6 +92,7 @@ void gg_send_uid(const String &uid, const String &webAppUrl) {
   http.end();
 }
 
+// Sends weight result to Google Sheets (uid, name, weight)
 void gg_send_weight_result(const String &uid, const String &name,
                            const String &weight, const String &webAppUrl) {
   String Send_Data_URL = webAppUrl + "?sts=writelog";
@@ -103,6 +109,7 @@ void gg_send_weight_result(const String &uid, const String &name,
   http.end();
 }
 
+// URL-encodes a string for HTTP GET
 String gg_urlencode(String str) {
   String encodedString = "";
   char c;
@@ -115,6 +122,7 @@ String gg_urlencode(String str) {
     } else if (isalnum(c)) {
       encodedString += c;
     } else {
+      // Encode non-alphanumeric as %XX
       code1 = (c & 0xf) + '0';
       if ((c & 0xf) > 9)
         code1 = (c & 0xf) - 10 + 'A';
@@ -126,11 +134,12 @@ String gg_urlencode(String str) {
       encodedString += code0;
       encodedString += code1;
     }
-    yield();
+    yield(); // Allow background tasks
   }
   return encodedString;
 }
 
+// Finds student name by UID in the students array
 char *gg_getStudentNameById(const char *uid, Student *students,
                             int studentCount) {
   for (int i = 0; i < studentCount; i++) {
@@ -141,6 +150,7 @@ char *gg_getStudentNameById(const char *uid, Student *students,
   return nullptr;
 }
 
+// Counts elements in a delimited string
 int gg_countElements(const char *data, char delimiter) {
   char dataCopy[strlen(data) + 1];
   strcpy(dataCopy, data);

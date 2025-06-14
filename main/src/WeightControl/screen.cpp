@@ -1,11 +1,12 @@
 #include "screen.h"
 
-// class LCD
+// LCD_I2C: LCD display implementation
 LCD_I2C::LCD_I2C(uint8_t lcd_Addr, uint8_t lcd_cols, uint8_t lcd_rows)
     : LiquidCrystal_I2C(lcd_Addr, lcd_cols, lcd_rows) {}
 
 void LCD_I2C::begin()
 {
+  // Initialize LCD
   init();
   backlight();
   noCursor();
@@ -26,12 +27,13 @@ void LCD_I2C::backlight()
   LiquidCrystal_I2C::backlight();
 }
 
+// Print weight to LCD, with unit conversion
 void LCD_I2C::printWeight(float w)
 {
   if (w < 0 && w > -ABSOLUTE_ERROR)
     w = 0;
   setCursor(1, 1);
-  print("               ");
+  print("               "); // Clear line
   setCursor(1, 1);
   if (Mode == MODE_US)
   {
@@ -48,6 +50,7 @@ void LCD_I2C::printWeight(float w)
 #endif
 }
 
+// Print temperature to LCD
 void LCD_I2C::printTemperature(float t)
 {
   setCursor(12, 1);
@@ -63,6 +66,7 @@ void LCD_I2C::printTemperature(float t)
   }
 }
 
+// Print title to LCD (clears display)
 void LCD_I2C::printTitle(String title)
 {
   LiquidCrystal_I2C::clear();
@@ -70,6 +74,7 @@ void LCD_I2C::printTitle(String title)
   print(title);
 }
 
+// Print content to LCD
 void LCD_I2C::printContent(String content)
 {
   setCursor(1, 1);
@@ -77,11 +82,13 @@ void LCD_I2C::printContent(String content)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// OLED_SSD1306: OLED display implementation
 OLED_SSD1306::OLED_SSD1306(uint8_t w, uint8_t h)
     : Adafruit_SSD1306(128, 64, &Wire, -1) {}
 
 void OLED_SSD1306::begin()
 {
+  // Initialize OLED
   Adafruit_SSD1306::begin(SSD1306_SWITCHCAPVCC, OLED_I2C_ADDRESS);
   clearDisplay();
   setTextColor(SSD1306_WHITE);
@@ -95,14 +102,15 @@ void OLED_SSD1306::clear()
 
 void OLED_SSD1306::noBacklight()
 {
-  dim(true);
+  dim(true); // Dim display
 }
 
 void OLED_SSD1306::backlight()
 {
-  dim(false);
+  dim(false); // Brighten display
 }
 
+// Print weight to OLED, with unit conversion
 void OLED_SSD1306::printWeight(float w)
 {
   if (w < 0 && w > -ABSOLUTE_ERROR)
@@ -127,6 +135,7 @@ void OLED_SSD1306::printWeight(float w)
   display();
 }
 
+// Print temperature to OLED
 void OLED_SSD1306::printTemperature(float t)
 {
   setTextSize(1);
@@ -145,6 +154,7 @@ void OLED_SSD1306::printTemperature(float t)
   }
   display();
 }
+// Print title to OLED (clears display)
 void OLED_SSD1306::printTitle(String title)
 {
   clearDisplay();
@@ -154,6 +164,7 @@ void OLED_SSD1306::printTitle(String title)
   display();
 }
 
+// Print content to OLED
 void OLED_SSD1306::printContent(String content)
 {
   setCursor(12, 24);
@@ -163,6 +174,7 @@ void OLED_SSD1306::printContent(String content)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// TEST_Screen: Combines LCD and OLED for testing
 TEST_Screen::TEST_Screen()
 :lcd(LCD_I2C_ADDRESS, 16, 2), oled(128, 64) {}
 
@@ -207,7 +219,6 @@ void TEST_Screen::printTitle(String title)
   lcd.printTitle(title);
   oled.printTitle(title);
 }
-
 
 void TEST_Screen::printContent(String content)
 {

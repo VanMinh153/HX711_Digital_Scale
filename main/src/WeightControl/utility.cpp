@@ -1,9 +1,11 @@
 #include "utility.h"
 
+// Gain setting for HX711
 hx711_gain_t Gain = CHAN_A_GAIN_128;
 int getData_Avg_return = 0;
 uint32_t sensor_error = 0;
 
+// Temperature reading for DHT, NTC, or LM35 sensors
 #if defined(HW_DHT)
 float readTemperature()
 {
@@ -17,6 +19,7 @@ float readTemperature()
 float readTemperature()
 {
   int data = analogRead(PIN_NTC);
+  // Convert NTC reading to Celsius using Beta formula
   float temp = 1 / (log(1 / (1023. / data - 1)) / BETA + 1 / 298.15) - 273.15;
   return temp;
 }
@@ -29,6 +32,7 @@ float readTemperature()
 }
 #endif
 
+// RFID reading (returns UID as string)
 #if defined(HW_RFID)
 String readRFID()
 {
@@ -56,6 +60,7 @@ String readRFID()
 //
 /**
  * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
+ * Sleep function for power saving (currently stub)
  */
 uint8_t sleep_(uint8_t sensitivity)
 {
@@ -154,6 +159,7 @@ uint8_t waitForWeightChange(uint16_t timeout, uint16_t time2listen, uint16_t err
   return (t == TIME_END) ? 0 : 2;
 }
 
+// Waits for interrupt or timeout
 uint8_t waitOnInterrupt(uint32_t timeout, volatile uint8_t *isrCtl)
 {
   unsigned long t = millis() + timeout;
@@ -171,6 +177,7 @@ uint8_t waitOnInterrupt(uint32_t timeout, volatile uint8_t *isrCtl)
   return (millis() >= t) ? 0 : 1;
 }
 
+// Sorts array by distance from average
 void sort_(int arr[], uint8_t n, int avg)
 {
   for (int i = 1; i < n; i++)
@@ -187,6 +194,7 @@ void sort_(int arr[], uint8_t n, int avg)
 }
 //----------------------------------------------------------------------------------------------------------------------
 #define GET_DATA_FAIL 505
+// Data averaging for HX711 (single or multi)
 #if defined(HW_HX711)
 int getData_Avg(HX711 adc)
 {
@@ -309,6 +317,7 @@ int getData_Avg(HX711List adc)
 }
 #endif
 
+// Robust data reading with retries and error checks
 int getData_(uint8_t allow_delay)
 {
   int d = getData_Avg(sensor);
@@ -338,16 +347,19 @@ int getData_(uint8_t allow_delay)
   return -d;
 }
 
+// Converts raw data to weight
 float toWeight(int data)
 {
   return (long)(data - Tare) / Scale;
 }
 
+// Gets current weight
 float getWeight()
 {
   return (long)(getData_() - Tare) / Scale;
 }
 
+// Sets gain and updates related variables
 void setGain(hx711_gain_t gain)
 {
   float k;
@@ -367,6 +379,7 @@ void setGain(hx711_gain_t gain)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// Interrupt Service Routines (ISRs) for button presses
 void IRAM_ATTR recordISR()
 {
   unsigned long t = millis();
