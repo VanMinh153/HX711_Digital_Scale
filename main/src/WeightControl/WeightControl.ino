@@ -151,7 +151,7 @@ void loop() {
 #endif
 
   _data = getData_();
-  _weight = -toWeight(_data);
+  _weight = toWeight(_data);
 
   title = MAIN_TITLE;
 

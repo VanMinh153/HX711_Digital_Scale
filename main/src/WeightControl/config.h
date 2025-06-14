@@ -3,7 +3,7 @@
 
 #define CONFIG_IDF_TARGET_ESP32 1
 // Enable this to use debug code in program
-// #define DEBUG_MODE
+#define DEBUG_MODE
 
 /* 
 Choose hardware opponent

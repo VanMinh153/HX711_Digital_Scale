@@ -60,24 +60,25 @@ String readRFID()
 uint8_t sleep_(uint8_t sensitivity)
 {
   Serial.print("Sleeping...");
-  screen.clear();
-  screen.noBacklight();
-  uint8_t retval = 0;
-  setGain(CHAN_A_GAIN_64);
+  // screen.clear();
+  // screen.noBacklight();
+  // uint8_t retval = 0;
+  // setGain(CHAN_A_GAIN_64);
 
-  retval = waitForWeightChange(0xffff, 500, sensitivity * Absolute_error);
-  if (retval == 1)
-    Serial.println(" > Awake: Detect Weight Changes");
-  else if (retval == 2)
-    Serial.println(" > Awake: Detect Interrupt");
-  else if (retval == 3)
-    Serial.println(" > Awake: Detect Weight Changes from Zero");
-  else if (retval == 4)
-    Serial.println(" > Awake: detect_new_weight_flag have been set before!!!");
+  // retval = waitForWeightChange(0xffff, 500, sensitivity * Absolute_error);
+  // if (retval == 1)
+  //   Serial.println(" > Awake: Detect Weight Changes");
+  // else if (retval == 2)
+  //   Serial.println(" > Awake: Detect Interrupt");
+  // else if (retval == 3)
+  //   Serial.println(" > Awake: Detect Weight Changes from Zero");
+  // else if (retval == 4)
+  //   Serial.println(" > Awake: detect_new_weight_flag have been set before!!!");
 
-  setGain(CHAN_A_GAIN_128);
-  screen.backlight();
-  return retval;
+  // setGain(CHAN_A_GAIN_128);
+  // screen.backlight();
+  // return retval;
+  return 1;
 }
 
 /**
@@ -189,8 +190,8 @@ void sort_(int arr[], uint8_t n, int avg)
 #if defined(HW_HX711)
 int getData_Avg(HX711 adc)
 {
-  const uint8_t N = 2;
-  const uint8_t K = 5;
+  const uint8_t N = 3;
+  const uint8_t K = 3;
   int d[N];
   int d_avg = 0;
   uint32_t d_worst = 0;
@@ -217,7 +218,7 @@ int getData_Avg(HX711 adc)
 
   // if (count < N)
   //   return GET_DATA_FAIL;
-  d_avg != N;
+  d_avg /= N;
   sort_(d, N, d_avg);
   d_worst = abs(d[N - 1] - d_avg);
 
@@ -311,7 +312,7 @@ int getData_Avg(HX711List adc)
 int getData_(uint8_t allow_delay)
 {
   int d = getData_Avg(sensor);
-  if (d != GET_DATA_FAIL && sensor_error < Absolute_error)
+  if (d != GET_DATA_FAIL && sensor_error < 10*Absolute_error)
     return d;
 
   if (allow_delay == 1)
@@ -334,7 +335,7 @@ int getData_(uint8_t allow_delay)
   if (sensor_error > Absolute_error)
     Serial.println("Warning: Low accurary value: " + String(toWeight(d)) + " +-" + String(sensor_error / Scale));
 
-  return d;
+  return -d;
 }
 
 float toWeight(int data)

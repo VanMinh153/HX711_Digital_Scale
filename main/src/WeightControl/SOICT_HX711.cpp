@@ -148,7 +148,9 @@ float HX711::getWeight(hx711_gain_t gain_val)
 
 int HX711::readData()
 {
-  return readData(gain);
+  int res = readData(gain);
+  // Serial.println(res);
+  return res;
 }
 
 // Read data from HX711 and set gain after read
@@ -167,10 +169,10 @@ int HX711::readData(hx711_gain_t gain_val)
     setting_gain = gain_val;
   }
 
-#if defined(DEBUG_MODE)
-  // Serial.print("`DATA`= " + String(data) + " | ");
-  // if (data == HX711_FAIL)
-  //   Serial.print("`READ_FAIL`; ");
+#if defined(DEBUG_SOICT_HX711)
+  Serial.print("`DATA`= " + String(data) + " | ");
+  if (data == HX711_FAIL)
+    Serial.print("`READ_FAIL`; ");
 #endif
 
   if (_powerDown == 1)
@@ -265,7 +267,7 @@ int HX711List::readData()
   return data;
 }
 
-#if !defined(DEBUG_MODE)
+#if !defined(DEBUG_SOICT_HX711)
 int HX711List::readDataAsync(hx711_gain_t gain_val)
 {
   const uint8_t total_read_allow = Size * 2;

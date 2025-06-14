@@ -7,8 +7,8 @@
 #define SOICT_HX711_H
 
 #include <Arduino.h>
-// include config.h to use DEBUG_MODE define
-// #include "config.h"
+
+// #define DEBUG_SOICT_HX711
 
 #define HX711_FAIL 0xFFFF
 
