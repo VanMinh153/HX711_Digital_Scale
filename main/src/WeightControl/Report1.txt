@@ -46,6 +46,8 @@ CHƯƠNG 1: Giới thiệu sản phẩm
 	Điều chỉnh cân về 0 kg.
 	Lưu kết quả của các lượt cân gần nhất.
 	Tự động vào chế độ ngủ (tắt đèn nền, giảm tần suất đọc dữ liệu từ cảm biến).
+	Đọc thẻ RFID: Khi học sinh hoặc người dùng đặt thẻ RFID lên đầu đọc, hệ thống sẽ nhận diện mã số thẻ, tự động gán tên tương ứng (nếu có trong danh sách) và ghi nhận kết quả cân cho từng cá nhân.
+	Gửi dữ liệu cân lên Google Sheet: Sau mỗi lần cân có nhận diện RFID, kết quả cân (tên, mã số, cân nặng) sẽ được gửi tự động lên Google Sheet thông qua Internet. Điều này giúp lưu trữ lịch sử cân nặng, dễ dàng tra cứu, thống kê và chia sẻ với phụ huynh hoặc nhà trường.
 2. Thiết bị sử dụng
 STT	Tên linh kiện	Số lượng
 	1	ESP32 devkit module	1
@@ -129,8 +131,46 @@ Hàm xử lý ngắt cho mỗi nút bấm có cấu trúc tương tự nhau. Đ�
 2.4 Chế độ ngủ
 Nếu sau một khoảng thời gian cố định, giá trị đọc được từ bộ khuyếch đại không thay đổi thì chương trình sẽ tự động vào chế độ ngủ. Trong chế độ ngủ, chương trình vẫn lắng nghe có ngắt xảy ra hay không, khối lượng có thay đổi hay không. Nếu phát hiện có ngắt hoặc thay đổi khối lượng, chương trình sẽ trở về luồng hoạt động chính. Ngoài ra khi vào chế độ ngủ, chương trình sẽ chuyển sang dùng GAIN_64 thay vì GAIN_128 để giảm thời gian đọc dữ liệu từ bộ khuyếch đại.
 
+2.5 Quét thẻ RFID và gửi dữ liệu lên Google Sheet
 
-Chương 3: Đánh giá tổng quan
+
+Chương 3: 
+Ý NGHĨA VÀ SỰ THIẾT THỰC CỦA DỰ ÁN
+
+Dự án "Cân điện tử thông minh tích hợp RFID và lưu trữ dữ liệu trên Google Sheet" mang lại nhiều ý nghĩa thực tiễn, đặc biệt trong môi trường giáo dục mầm non:
+- Đối với các trường mầm non, việc kiểm soát cân nặng của trẻ nhỏ là vô cùng quan trọng để theo dõi sự phát triển thể chất, phát hiện sớm các vấn đề về dinh dưỡng hoặc sức khỏe.
+- Sản phẩm cho phép mỗi bé có một thẻ RFID riêng, khi cân chỉ cần quét thẻ là hệ thống tự động nhận diện, ghi nhận và lưu lại kết quả cân nặng của từng bé theo từng thời điểm.
+- Dữ liệu cân nặng được gửi lên Google Sheet giúp giáo viên, nhà trường và phụ huynh dễ dàng theo dõi lịch sử phát triển của trẻ, phát hiện sớm các dấu hiệu bất thường, từ đó có biện pháp can thiệp kịp thời.
+- Phụ huynh có thể yên tâm hơn khi biết rằng cân nặng của con mình luôn được kiểm soát, minh bạch và có thể tra cứu bất cứ lúc nào.
+- Ngoài ra, hệ thống còn có thể mở rộng cho các ứng dụng khác như kiểm soát sức khỏe học sinh, nhân viên trong các nhà máy, bệnh viện, phòng tập gym...
+
+Với những tính năng này, sản phẩm không chỉ mang lại sự tiện lợi, chính xác mà còn góp phần nâng cao chất lượng chăm sóc sức khỏe cho trẻ nhỏ và cộng đồng.
+
+BỔ SUNG CHI TIẾT VỀ TÍNH NĂNG VÀ KHẢ NĂNG ỨNG DỤNG THỰC TẾ
+
+Sản phẩm cân điện tử thông minh không chỉ dừng lại ở việc đo khối lượng thông thường mà còn tích hợp nhiều tính năng hiện đại, đáp ứng nhu cầu quản lý, giám sát sức khỏe trong nhiều môi trường khác nhau. Một trong những điểm nổi bật là khả năng nhận diện cá nhân qua thẻ RFID. Mỗi người dùng, đặc biệt là trẻ nhỏ trong trường mầm non, sẽ được cấp một thẻ RFID riêng biệt. Khi bé bước lên cân và quét thẻ, hệ thống sẽ tự động nhận diện, hiển thị tên, ghi nhận cân nặng và lưu trữ thông tin này vào cơ sở dữ liệu trực tuyến (Google Sheet). Điều này giúp loại bỏ hoàn toàn thao tác thủ công, tránh nhầm lẫn, tiết kiệm thời gian cho giáo viên và đảm bảo tính chính xác tuyệt đối trong việc theo dõi sức khỏe của từng bé.
+
+Tính năng gửi dữ liệu cân lên Google Sheet mang lại sự minh bạch và tiện lợi vượt trội. Mỗi lần cân, thông tin về tên, mã số, cân nặng, thời gian đều được lưu lại, tạo thành một lịch sử phát triển sức khỏe chi tiết cho từng cá nhân. Giáo viên, nhà trường và phụ huynh có thể dễ dàng truy cập, tra cứu, thống kê, so sánh sự thay đổi cân nặng của trẻ qua từng tuần, từng tháng. Việc này không chỉ giúp phát hiện sớm các dấu hiệu bất thường về sức khỏe (suy dinh dưỡng, tăng cân quá nhanh,...) mà còn là cơ sở để xây dựng chế độ dinh dưỡng, vận động phù hợp cho từng bé.
+
+Sản phẩm còn hỗ trợ hiển thị nhiệt độ môi trường, giúp nhà trường kiểm soát điều kiện phòng học, đảm bảo môi trường an toàn cho trẻ. Chức năng tự động chuyển đổi đơn vị đo (kg/lb, °C/°F) giúp sản phẩm dễ dàng ứng dụng ở nhiều quốc gia, khu vực khác nhau. Ngoài ra, các nút tinh chỉnh cho phép giáo viên hiệu chỉnh cân nhanh chóng nếu phát hiện sai số, đảm bảo kết quả luôn chính xác.
+
+Khả năng lưu trữ các lượt cân gần nhất và hiển thị lại khi cần thiết giúp giáo viên dễ dàng kiểm tra lại thông tin, phục vụ công tác báo cáo, tổng hợp. Chế độ ngủ tự động giúp tiết kiệm năng lượng, kéo dài tuổi thọ thiết bị, phù hợp với môi trường sử dụng liên tục như trường học.
+
+Ứng dụng thực tế của sản phẩm rất đa dạng:
+- Trong trường mầm non, tiểu học: Quản lý sức khỏe học sinh, phát hiện sớm các vấn đề về phát triển thể chất, hỗ trợ xây dựng chế độ dinh dưỡng cá nhân hóa.
+- Tại các phòng khám, bệnh viện: Quản lý hồ sơ sức khỏe bệnh nhân, tự động hóa quy trình cân đo, giảm tải cho nhân viên y tế.
+- Phòng tập gym, trung tâm thể hình: Theo dõi tiến trình tập luyện, lưu trữ kết quả cân nặng của hội viên, tạo động lực và minh bạch trong quá trình rèn luyện.
+- Nhà máy, xí nghiệp: Quản lý sức khỏe công nhân, kiểm soát cân nặng định kỳ, phục vụ công tác an toàn lao động.
+- Gia đình: Theo dõi sức khỏe các thành viên, đặc biệt là trẻ nhỏ, người già, người có nhu cầu kiểm soát cân nặng.
+
+Sản phẩm còn có tiềm năng mở rộng mạnh mẽ trong tương lai. Có thể tích hợp thêm cảm biến đo chiều cao, đo nhịp tim, nồng độ oxy trong máu, camera nhận diện khuôn mặt, kết nối Bluetooth/WiFi để đồng bộ dữ liệu với các ứng dụng sức khỏe trên điện thoại thông minh. Việc sử dụng nền tảng Google Sheet giúp dễ dàng tích hợp với các hệ thống quản lý trường học, bệnh viện, hoặc xuất dữ liệu ra các phần mềm phân tích chuyên sâu.
+
+Một ví dụ thực tế: Tại một trường mầm non, mỗi sáng các bé được cân tự động, giáo viên chỉ cần hướng dẫn bé quét thẻ RFID, toàn bộ dữ liệu sẽ được lưu lại và gửi thông báo về cho phụ huynh qua email hoặc ứng dụng di động. Nếu phát hiện bé có dấu hiệu sụt cân bất thường, hệ thống sẽ cảnh báo để nhà trường và phụ huynh phối hợp xử lý kịp thời. Điều này không chỉ giúp nâng cao chất lượng chăm sóc trẻ mà còn tạo sự yên tâm tuyệt đối cho phụ huynh.
+
+Tóm lại, cân điện tử thông minh tích hợp RFID và lưu trữ dữ liệu trực tuyến là giải pháp toàn diện, hiện đại, phù hợp với xu thế chuyển đổi số trong giáo dục, y tế và quản lý sức khỏe cộng đồng. Sản phẩm không chỉ mang lại sự tiện lợi, chính xác mà còn góp phần xây dựng môi trường sống, học tập và làm việc an toàn, khoa học, hiện đại.
+
+
+Chương 4: Đánh giá tổng quan
 1. Kết quả sau khi hoàn thành đồ án môn học
 	Nắm vững và áp dụng thành công nguyên lý hoạt động và kỹ thuật sử dụng load cell, bộ khuyếch đại HX711.
 	Phát triển kỹ năng lập trình vi điều khiển và giao tiếp giữa các thiết bị phần cứng.

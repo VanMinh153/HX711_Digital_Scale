@@ -1,0 +1,135 @@
+ĐỒ ÁN MÔN HỌC
+CÂN ĐIỆN TỬ THÔNG MINH TÍCH HỢP RFID VÀ GOOGLE SHEET
+Nguyễn Văn Minh – 20215092
+
+MỤC LỤC
+1. Lời nói đầu
+2. Chương 1: Giới thiệu sản phẩm
+   1. Tính năng sản phẩm
+   2. Thiết bị sử dụng
+   3. Môi trường phát triển
+3. Chương 2: Xây dựng chương trình
+   1. Tìm hiểu phần cứng
+   2. Xây dựng phần mềm
+      1. Cấu trúc mã nguồn
+      2. Tính toán khối lượng
+      3. Xử lý ngắt
+      4. Chế độ ngủ
+      5. Quét thẻ RFID và gửi dữ liệu lên Google Sheet
+4. Chương 3: Đánh giá tổng quan
+   1. Ý nghĩa và ứng dụng thực tế
+   2. Kết quả đạt được
+   3. Hạn chế và bài học kinh nghiệm
+   4. Hướng phát triển
+5. Phụ lục
+
+---
+
+LỜI NÓI ĐẦU
+
+Trong bối cảnh chuyển đổi số mạnh mẽ, các thiết bị thông minh tích hợp IoT ngày càng đóng vai trò quan trọng trong quản lý sức khỏe, giáo dục, sản xuất và đời sống. Đồ án “Cân điện tử thông minh tích hợp RFID và Google Sheet” là một sản phẩm thực tiễn, kết hợp giữa phần cứng (load cell, vi điều khiển, cảm biến, RFID) và phần mềm (xử lý dữ liệu, giao tiếp Internet, lưu trữ đám mây) nhằm giải quyết bài toán quản lý, theo dõi sức khỏe một cách tự động, chính xác, minh bạch, đặc biệt phù hợp với môi trường giáo dục mầm non, tiểu học và các tổ chức cần quản lý sức khỏe tập trung.
+
+---
+
+CHƯƠNG 1: GIỚI THIỆU SẢN PHẨM
+
+1.1. Tính năng sản phẩm
+- Đo khối lượng chính xác, hiển thị tới 2 chữ số thập phân, hỗ trợ cả số âm, tự động hiệu chỉnh sai số.
+- Hiển thị nhiệt độ môi trường, chuyển đổi đơn vị đo (kg/lb, °C/°F) linh hoạt.
+- Tare (điều chỉnh cân về 0 kg), lưu và xem lại các lượt cân gần nhất.
+- Tự động vào chế độ ngủ khi không sử dụng, tiết kiệm năng lượng.
+- Nhận diện cá nhân qua thẻ RFID, tự động gán tên, ghi nhận kết quả cân, hiển thị thông tin cá nhân và cân nặng lên màn hình LCD/OLED.
+- Gửi dữ liệu cân (tên, mã số, cân nặng, thời gian) lên Google Sheet, lưu trữ lịch sử, hỗ trợ tra cứu, thống kê, chia sẻ với phụ huynh/nhà trường.
+- Giao diện thân thiện, dễ sử dụng, phù hợp với cả trẻ nhỏ và người lớn tuổi.
+
+1.2. Thiết bị sử dụng
+- ESP32 Devkit module: Vi điều khiển trung tâm, hỗ trợ WiFi, nhiều chân I/O.
+- Bộ khuếch đại HX711: Đọc tín hiệu load cell, chuyển đổi analog-số.
+- 4 Load cell 50kg: Cảm biến lực, tạo thành mạch cầu Wheatstone.
+- LCD1602 I2C hoặc OLED 128x64: Hiển thị thông tin cân nặng, tên, nhiệt độ.
+- Cảm biến nhiệt độ (NTC, DHT, LM35): Đo nhiệt độ môi trường.
+- Module RFID MFRC522: Đọc mã số thẻ RFID, nhận diện cá nhân.
+- 5 công tắc bấm: Điều khiển các chức năng (Tare, Mode, Up, Down, Record).
+
+1.3. Môi trường phát triển
+- Visual Studio Code, Arduino IDE: Lập trình, biên dịch, nạp chương trình.
+- Wokwi: Mô phỏng phần cứng, kiểm thử logic.
+- Google Sheet: Lưu trữ dữ liệu cân, truy xuất từ xa.
+
+---
+
+CHƯƠNG 2: XÂY DỰNG CHƯƠNG TRÌNH
+
+2.1. Tìm hiểu phần cứng
+- **Load cell 50kg**: Cảm biến lực, chuyển đổi lực thành tín hiệu điện, đấu nối thành mạch cầu Wheatstone, cho phép đo chính xác khối lượng vật đặt lên cân.
+- **HX711**: Bộ khuếch đại tín hiệu, chuyển đổi tín hiệu analog từ load cell sang số, giao tiếp với ESP32 qua giao thức digital, hỗ trợ nhiều chế độ khuếch đại.
+- **RFID MFRC522**: Đọc mã số thẻ RFID, nhận diện cá nhân, giúp tự động hóa quá trình ghi nhận dữ liệu.
+- **Cảm biến nhiệt độ**: Đo nhiệt độ môi trường, hỗ trợ nhiều loại cảm biến, đảm bảo điều kiện cân đo phù hợp.
+
+2.2. Cấu trúc mã nguồn
+- `config.h`: Khai báo phần cứng, thông số chương trình, các macro cấu hình.
+- `screen.cpp/h`: Định nghĩa các lớp màn hình LCD, OLED, giao diện hiển thị, hàm printRecord hiển thị tên và cân nặng.
+- `SOICT_HX711.cpp/h`: Định nghĩa lớp HX711, đọc dữ liệu load cell, xử lý trung bình, loại bỏ nhiễu.
+- `gg_sheets.cpp/h`: Giao tiếp Google Sheet, gửi/lấy dữ liệu qua HTTP, mã hóa URL, xử lý trả về.
+- `utility.cpp/h`: Hàm tiện ích, xử lý ngắt, đọc cảm biến, xử lý dữ liệu, các ISR cho nút bấm.
+- `main.h`: Biến toàn cục, khai báo extern cho các thành phần chính.
+- `WeightControl.ino`: Chương trình chính, điều phối toàn bộ hoạt động, vòng lặp chính, xử lý logic RFID, cân, gửi dữ liệu.
+
+2.3. Tính toán khối lượng
+- Đọc giá trị từ HX711, trừ giá trị Tare, chia cho hệ số Scale để ra khối lượng thực.
+- Hỗ trợ hiệu chỉnh Scale, Tare bằng nút bấm, đảm bảo cân luôn chính xác.
+- Hiển thị kết quả theo đơn vị lựa chọn, chuyển đổi linh hoạt giữa kg/lb.
+- Sử dụng thuật toán lấy trung bình nhiều lần đọc, loại bỏ giá trị nhiễu, tăng độ ổn định.
+
+2.4. Xử lý ngắt
+- Mỗi nút bấm (UP, DOWN, TARE, MODE, RECORD) có ISR riêng, đảm bảo chống rung (debounce), tăng biến interrupt để báo hiệu sự kiện.
+- Cho phép điều chỉnh kết quả, chuyển đổi đơn vị, lưu và xem lại các lượt cân.
+- ISR chỉ thực hiện thao tác gán cờ, xử lý logic chính được thực hiện ngoài vòng lặp chính để tránh xung đột tài nguyên.
+
+2.5. Quét thẻ RFID và gửi dữ liệu lên Google Sheet
+- Khi người dùng đặt thẻ RFID lên đầu đọc, hệ thống sẽ nhận diện mã số thẻ, tra cứu tên trong danh sách học sinh đã tải về từ Google Sheet.
+- Sau khi cân xong, tên và cân nặng sẽ được hiển thị lên màn hình LCD/OLED bằng hàm printRecord, giúp xác nhận trực quan cho người dùng.
+- Dữ liệu cân (tên, mã số, cân nặng, thời gian) sẽ được gửi tự động lên Google Sheet thông qua Internet bằng hàm gg_send_weight_result. Việc này giúp lưu trữ lịch sử cân nặng, dễ dàng tra cứu, thống kê, chia sẻ với phụ huynh, nhà trường hoặc các bên liên quan.
+- Nếu thẻ RFID không có trong danh sách, hệ thống sẽ hiển thị "Unknown" và vẫn ghi nhận dữ liệu, đảm bảo không bỏ sót bất kỳ lượt cân nào.
+- Tính năng này đặc biệt hữu ích trong môi trường trường mầm non, giúp giáo viên, phụ huynh theo dõi sát sao sự phát triển của trẻ, phát hiện sớm các dấu hiệu bất thường về sức khỏe.
+- Ngoài ra, hệ thống còn có thể mở rộng cho các ứng dụng khác như quản lý sức khỏe nhân viên, bệnh nhân, hội viên phòng gym, v.v.
+
+---
+
+CHƯƠNG 3: ĐÁNH GIÁ TỔNG QUAN
+
+3.1. Ý nghĩa và ứng dụng thực tế
+- Sản phẩm giúp quản lý sức khỏe học sinh, phát hiện sớm các vấn đề về dinh dưỡng, phát triển thể chất, đặc biệt phù hợp với trường mầm non, tiểu học.
+- Tự động hóa quy trình cân đo, loại bỏ thao tác thủ công, tăng độ chính xác, tiết kiệm thời gian cho giáo viên, nhân viên y tế.
+- Dữ liệu cân nặng được lưu trữ minh bạch, dễ dàng chia sẻ, tra cứu, thống kê, tạo sự yên tâm cho phụ huynh, nhà trường.
+- Ứng dụng đa dạng: trường học, bệnh viện, phòng gym, nhà máy, gia đình, các tổ chức cần quản lý sức khỏe tập trung.
+- Sản phẩm còn hỗ trợ hiển thị nhiệt độ, chuyển đổi đơn vị, lưu trữ các lượt cân gần nhất, chế độ ngủ tiết kiệm năng lượng, giao diện thân thiện.
+- Việc tích hợp Google Sheet giúp đồng bộ dữ liệu, dễ dàng mở rộng, tích hợp với các hệ thống quản lý khác, xuất báo cáo, phân tích chuyên sâu.
+- Ví dụ thực tế: Tại trường mầm non, mỗi bé có thẻ RFID riêng, mỗi lần cân chỉ cần quét thẻ, dữ liệu tự động gửi về Google Sheet, phụ huynh có thể nhận thông báo, theo dõi sức khỏe con mọi lúc mọi nơi.
+
+3.2. Kết quả đạt được
+- Hiểu và áp dụng thành công nguyên lý load cell, HX711, RFID, giao tiếp Internet, xử lý dữ liệu thời gian thực.
+- Xây dựng hệ thống hoàn chỉnh, hoạt động ổn định, giao diện trực quan, dễ sử dụng.
+- Lưu trữ dữ liệu cân nặng lên Google Sheet, hỗ trợ quản lý tập trung, truy xuất từ xa.
+- Đảm bảo tính mở rộng, dễ dàng tích hợp thêm cảm biến, chức năng mới.
+
+3.3. Hạn chế và bài học kinh nghiệm
+- Thời gian đọc dữ liệu từ HX711 còn chậm, ảnh hưởng tốc độ phản hồi, cần tối ưu thuật toán đọc và xử lý dữ liệu.
+- Không thể thực hiện các thao tác giao tiếp màn hình trong ISR do hạn chế của vi điều khiển, cần tách logic ISR và xử lý chính.
+- Cần tối ưu thêm về giao diện, tốc độ xử lý, bảo mật dữ liệu khi triển khai thực tế quy mô lớn.
+- Việc đồng bộ dữ liệu với Google Sheet phụ thuộc vào kết nối Internet, cần có cơ chế lưu tạm khi mất mạng.
+
+3.4. Hướng phát triển
+- Tích hợp thêm cảm biến đo chiều cao, nhịp tim, nồng độ oxy, camera nhận diện khuôn mặt.
+- Kết nối Bluetooth/WiFi với ứng dụng di động, gửi thông báo tự động cho phụ huynh, quản lý.
+- Mở rộng cho các đối tượng khác: người già, bệnh nhân, công nhân, hội viên phòng gym...
+- Tối ưu thuật toán đọc dữ liệu, giao diện hiển thị, bảo mật và đồng bộ dữ liệu.
+- Xây dựng dashboard trực quan, phân tích dữ liệu sức khỏe tập trung.
+
+---
+
+PHỤ LỤC
+- Mã nguồn sản phẩm (đính kèm)
+- Mô phỏng sản phẩm trên Wokwi
+- Hình ảnh, video demo thực tế
+- Tài liệu tham khảo
