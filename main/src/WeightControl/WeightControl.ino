@@ -186,6 +186,7 @@ void loop() {
     char *studentName = gg_getStudentNameById(uidChar, students, studentCount);
     String nameStr = studentName ? String(studentName) : String("Unknown");
     String weight = String(record_weight[record_weight_idx], 2);
+    screen.printRecord(nameStr, weight); // Hiển thị tên và cân nặng
     Serial.println();
     Serial.println("-------------");
     Serial.println("Send data to Google Spreadsheet...");

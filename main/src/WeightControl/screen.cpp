@@ -81,6 +81,16 @@ void LCD_I2C::printContent(String content)
   print(content);
 }
 
+// Print record to LCD
+void LCD_I2C::printRecord(String name, String weight)
+{
+  clear();
+  setCursor(0, 0); // Dòng trên
+  print(name);
+  setCursor(0, 1); // Dòng dưới
+  print(weight);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // OLED_SSD1306: OLED display implementation
 OLED_SSD1306::OLED_SSD1306(uint8_t w, uint8_t h)
@@ -154,6 +164,7 @@ void OLED_SSD1306::printTemperature(float t)
   }
   display();
 }
+
 // Print title to OLED (clears display)
 void OLED_SSD1306::printTitle(String title)
 {
@@ -170,6 +181,19 @@ void OLED_SSD1306::printContent(String content)
   setCursor(12, 24);
   setTextSize(2);
   println(content);
+  display();
+}
+
+// Print record to OLED
+void OLED_SSD1306::printRecord(String name, String weight)
+{
+  clearDisplay();
+  setTextSize(1);
+  setCursor(0, 0); // Dòng trên
+  println(name);
+  setTextSize(2);
+  setCursor(0, 24); // Dòng dưới
+  println(weight);
   display();
 }
 
@@ -224,4 +248,11 @@ void TEST_Screen::printContent(String content)
 {
   lcd.printContent(content);
   oled.printContent(content);
+}
+
+// Print record to test screen
+void TEST_Screen::printRecord(String name, String weight)
+{
+  lcd.printRecord(name, weight);
+  oled.printRecord(name, weight);
 }

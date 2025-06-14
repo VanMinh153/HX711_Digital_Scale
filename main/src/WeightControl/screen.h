@@ -21,6 +21,7 @@ public:
   virtual void printTemperature(float t) = 0; // Show temperature
   virtual void printTitle(String title) = 0;  // Show title
   virtual void printContent(String content) = 0; // Show content
+  virtual void printRecord(String name, String weight) = 0; // Hiển thị tên và cân nặng
 };
 
 // LCD implementation
@@ -37,6 +38,7 @@ public:
   void printTemperature(float t) override;
   void printTitle(String title) override;
   void printContent(String content) override;
+  void printRecord(String name, String weight) override;
 };
 
 // OLED implementation
@@ -53,6 +55,7 @@ public:
   void printTemperature(float t) override;
   void printTitle(String title) override;
   void printContent(String content) override;
+  void printRecord(String name, String weight) override;
 };
 
 // Test screen: combines LCD and OLED
@@ -71,6 +74,7 @@ public:
   void printTemperature(float t) override;
   void printTitle(String title) override;
   void printContent(String content) override;
+  void printRecord(String name, String weight) override;
 };
 
 #endif

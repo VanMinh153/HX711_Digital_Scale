@@ -62,29 +62,35 @@ String readRFID()
  * @param sensitivity   Absolute error of the scale will be set to (sensitivity * Absolute_error)
  * Sleep function for power saving (currently stub)
  */
+#ifndef DEBUG_MODE
 uint8_t sleep_(uint8_t sensitivity)
 {
-  Serial.print("Sleeping...");
-  // screen.clear();
-  // screen.noBacklight();
-  // uint8_t retval = 0;
-  // setGain(CHAN_A_GAIN_64);
+  screen.clear();
+  screen.noBacklight();
+  uint8_t retval = 0;
+  setGain(CHAN_A_GAIN_64);
 
-  // retval = waitForWeightChange(0xffff, 500, sensitivity * Absolute_error);
-  // if (retval == 1)
-  //   Serial.println(" > Awake: Detect Weight Changes");
-  // else if (retval == 2)
-  //   Serial.println(" > Awake: Detect Interrupt");
-  // else if (retval == 3)
-  //   Serial.println(" > Awake: Detect Weight Changes from Zero");
-  // else if (retval == 4)
-  //   Serial.println(" > Awake: detect_new_weight_flag have been set before!!!");
+  retval = waitForWeightChange(0xffff, 500, sensitivity * Absolute_error);
+  if (retval == 1)
+    Serial.println(" > Awake: Detect Weight Changes");
+  else if (retval == 2)
+    Serial.println(" > Awake: Detect Interrupt");
+  else if (retval == 3)
+    Serial.println(" > Awake: Detect Weight Changes from Zero");
+  else if (retval == 4)
+    Serial.println(" > Awake: detect_new_weight_flag have been set before!!!");
 
-  // setGain(CHAN_A_GAIN_128);
-  // screen.backlight();
+  setGain(CHAN_A_GAIN_128);
+  screen.backlight();
   // return retval;
+}
+#else
+uint8_t sleep_(uint8_t sensitivity)
+{
   return 1;
 }
+#endif
+
 
 /**
  * @brief Delay function with the ability to detect the interruption signal and weight changes
@@ -344,19 +350,19 @@ int getData_(uint8_t allow_delay)
   if (sensor_error > Absolute_error)
     Serial.println("Warning: Low accurary value: " + String(toWeight(d)) + " +-" + String(sensor_error / Scale));
 
-  return -d;
+  return d;
 }
 
 // Converts raw data to weight
 float toWeight(int data)
 {
-  return (long)(data - Tare) / Scale;
+  return abs((long)(data - Tare)) / Scale;
 }
 
 // Gets current weight
 float getWeight()
 {
-  return (long)(getData_() - Tare) / Scale;
+  return abs((long)(getData_() - Tare)) / Scale;
 }
 
 // Sets gain and updates related variables
