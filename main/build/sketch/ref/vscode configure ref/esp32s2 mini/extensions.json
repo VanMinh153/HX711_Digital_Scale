@@ -1,7 +1,0 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\vscode configure ref\\esp32s2 mini\\extensions.json"
-{
-  "recommendations": [
-    "vsciot-vscode.vscode-arduino",
-    "wokwi.wokwi-vscode"
-  ]
-}

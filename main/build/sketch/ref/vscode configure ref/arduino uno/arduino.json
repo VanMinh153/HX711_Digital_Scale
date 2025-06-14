@@ -1,6 +1,0 @@
-#line 1 "C:\\Users\\Moderator\\Documents\\Documents\\GR1_Scale\\main\\ref\\vscode configure ref\\arduino uno\\arduino.json"
-{
-    "sketch": "main.ino",
-    "output": "build",
-    "board": "arduino:avr:uno"
-}
