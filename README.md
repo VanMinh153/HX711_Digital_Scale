@@ -32,6 +32,7 @@ Cân với 4 bộ HX711: <https://wokwi.com/projects/403649602321315841>
 | 4 | OLED | 1 | [Màn hình OLED 1.3 inch I2C](https://hshop.vn/products/lcd-oled-trang-1-3-inch-giao-tiep-i2c)
 | 5 | Cảm biến nhiệt độ | 1 | [Cảm biến nhiệt độ NTC Thermistor](https://hshop.vn/products/cam-bien-nhiet-do-ntc-thermistor)
 | 6 | Công tắc bấm | 5 | [Công tắc nhấn – tact switch button](https://hshop.vn/products/bo-5-loai-cong-tac-nhan-thong-dung-5-kind-tact-switch-button)
+| 7 | Module đọc thẻ RFID | 1| [Module RFID - MFRC522](https://hshop.vn/mach-rfid-rc522-nfc-13-56mhz)
 
 ## Sơ đồ nguyên lý
 
@@ -78,6 +79,7 @@ $$
 | screen.cpp, screen.h | Định nghĩa các lớp dùng để giao tiếp với màn hình LCD1602 I2C, OLED SSD1306
 | SOICT_HX711.cpp, SOICT_HX711.h | Định nghĩa các lớp dùng để giao tiếp với HX711
 | utility.cpp, utility.h  | Định nghĩa các hàm tiện ích, các hàm xử lý ngắt
+| gg_sheets.cpp, gg_sheets.h | Định nghĩa các hàm liên quan đến việc truyền gửi dữ liệu lên Google Sheets
 | main.h | Khai báo các biến toàn cục
 | main.ino | Chương trình chính
 
